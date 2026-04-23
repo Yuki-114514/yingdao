@@ -1,0 +1,33 @@
+{
+  "": {
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/primary.swiftdeps"
+  },
+  "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CameraWorkflowModel.swift": {
+    "dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel.d",
+    "object": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel.swift.o",
+    "swiftmodule": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel.swiftdeps",
+    "diagnostics": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel.dia"
+  },
+  "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CaptureReview.swift": {
+    "dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview.d",
+    "object": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview.swift.o",
+    "swiftmodule": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview~partial.swiftmodule",
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview.swiftdeps",
+    "diagnostics": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview.dia"
+  },
+  "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CapturedPhoto.swift": {
+    "dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto.d",
+    "object": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto.swift.o",
+    "swiftmodule": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto~partial.swiftmodule",
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto.swiftdeps",
+    "diagnostics": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto.dia"
+  },
+  "/Users/yuki/Documents/yingdao/yingdao-ios/Core/GuidePreset.swift": {
+    "dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset.d",
+    "object": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset.swift.o",
+    "swiftmodule": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset~partial.swiftmodule",
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset.swiftdeps",
+    "diagnostics": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset.dia"
+  }
+}

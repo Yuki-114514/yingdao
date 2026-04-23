@@ -1,0 +1,894 @@
+{
+  "builtTestProducts" : [
+    {
+      "binaryPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.xctest/Contents/MacOS/YingDaoCorePackageTests",
+      "packagePath" : "/Users/yuki/Documents/yingdao/yingdao-ios",
+      "productName" : "YingDaoCorePackageTests"
+    }
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.YingDaoCore-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/sources",
+      "importPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CameraWorkflowModel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CaptureReview.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CapturedPhoto.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Core/GuidePreset.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "YingDaoCore",
+      "moduleOutputPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCore.swiftmodule",
+      "objects" : [
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel.swift.o",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview.swift.o",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto.swift.o",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/include/YingDaoCore-Swift.h",
+        "-swift-version",
+        "6",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "yingdao_ios"
+      ],
+      "outputFileMapPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCore.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CameraWorkflowModel.swift",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CaptureReview.swift",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CapturedPhoto.swift",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/Core/GuidePreset.swift"
+      ],
+      "tempsPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.YingDaoCorePackageTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/sources",
+      "importPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.derived/runner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCoreTests.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "YingDaoCorePackageTests",
+      "moduleOutputPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCorePackageTests.swiftmodule",
+      "objects" : [
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/runner.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/include/YingDaoCorePackageTests-Swift.h",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "yingdao_ios"
+      ],
+      "outputFileMapPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCorePackageTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.derived/runner.swift"
+      ],
+      "tempsPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.YingDaoCoreTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/sources",
+      "importPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelCoachTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCore.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "YingDaoCoreTests",
+      "moduleOutputPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCoreTests.swiftmodule",
+      "objects" : [
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelCoachTests.swift.o",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelTests.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "yingdao_ios"
+      ],
+      "outputFileMapPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelCoachTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCoreTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelCoachTests.swift",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelTests.swift"
+      ],
+      "tempsPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.YingDaoCoreVerification-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build/sources",
+      "importPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Verification/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCore.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "YingDaoCoreVerification",
+      "moduleOutputPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCoreVerification.swiftmodule",
+      "objects" : [
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "YingDaoCoreVerification_main",
+        "-swift-version",
+        "6",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "yingdao_ios"
+      ],
+      "outputFileMapPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules/YingDaoCoreVerification.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/yuki/Documents/yingdao/yingdao-ios/Verification/main.swift"
+      ],
+      "tempsPath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "YingDaoCore" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "YingDaoCore",
+      "-package-name",
+      "yingdao_ios",
+      "-c",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CameraWorkflowModel.swift",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CaptureReview.swift",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CapturedPhoto.swift",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/Core/GuidePreset.swift",
+      "-I",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/include/YingDaoCore-Swift.h",
+      "-swift-version",
+      "6",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "yingdao_ios",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "YingDaoCorePackageTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "YingDaoCorePackageTests",
+      "-package-name",
+      "yingdao_ios",
+      "-c",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.derived/runner.swift",
+      "-I",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/include/YingDaoCorePackageTests-Swift.h",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "yingdao_ios",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "YingDaoCoreTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "YingDaoCoreTests",
+      "-package-name",
+      "yingdao_ios",
+      "-c",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelCoachTests.swift",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelTests.swift",
+      "-I",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-swift-version",
+      "6",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "yingdao_ios",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "YingDaoCoreVerification" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "YingDaoCoreVerification",
+      "-package-name",
+      "yingdao_ios",
+      "-c",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/Verification/main.swift",
+      "-I",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "YingDaoCoreVerification_main",
+      "-swift-version",
+      "6",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "yingdao_ios",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "YingDaoCore" : [
+
+    ],
+    "YingDaoCorePackageTests" : [
+      "YingDaoCoreTests",
+      "YingDaoCore"
+    ],
+    "YingDaoCoreTests" : [
+      "YingDaoCore"
+    ],
+    "YingDaoCoreVerification" : [
+      "YingDaoCore"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.derived/runner.swift" : {
+      "inputs" : [
+
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.derived/runner.swift"
+        }
+      ]
+    }
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CameraWorkflowModel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CaptureReview.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Core/CapturedPhoto.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Core/GuidePreset.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/sources"
+    },
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.derived/runner.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/sources"
+    },
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelCoachTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelTests.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.product/Objects.LinkFileList"
+    },
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelCoachTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelTests.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/sources"
+    },
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification-entitlement.plist"
+    },
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/Verification/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build/sources"
+    },
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CameraWorkflowModel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CaptureReview.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/CapturedPhoto.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCore.build/GuidePreset.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreVerification.product/Objects.LinkFileList"
+    },
+    "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

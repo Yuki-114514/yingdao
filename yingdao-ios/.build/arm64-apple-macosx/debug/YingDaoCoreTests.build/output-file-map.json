@@ -1,0 +1,19 @@
+{
+  "": {
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/primary.swiftdeps"
+  },
+  "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelCoachTests.swift": {
+    "dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelCoachTests.d",
+    "object": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelCoachTests.swift.o",
+    "swiftmodule": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelCoachTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelCoachTests.swiftdeps",
+    "diagnostics": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelCoachTests.dia"
+  },
+  "/Users/yuki/Documents/yingdao/yingdao-ios/Tests/YingDaoCoreTests/CameraWorkflowModelTests.swift": {
+    "dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelTests.d",
+    "object": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelTests.swift.o",
+    "swiftmodule": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelTests.swiftdeps",
+    "diagnostics": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCoreTests.build/CameraWorkflowModelTests.dia"
+  }
+}

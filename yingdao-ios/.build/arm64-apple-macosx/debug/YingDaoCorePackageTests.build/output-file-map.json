@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/primary.swiftdeps"
+  },
+  "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.derived/runner.swift": {
+    "dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/runner.d",
+    "object": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Users/yuki/Documents/yingdao/yingdao-ios/.build/arm64-apple-macosx/debug/YingDaoCorePackageTests.build/runner.dia"
+  }
+}

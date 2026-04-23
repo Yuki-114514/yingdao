@@ -1,0 +1,281 @@
+import { afterEach, describe, expect, it } from 'vitest';
+import type { FastifyInstance } from 'fastify';
+import { buildApp } from '../src/app.js';
+import { readEnv } from '../src/config/env.js';
+import {
+  UpstreamAiError,
+  type AiDirectorService,
+  type AssemblySuggestion,
+  type ClipReview,
+  type DirectorPlan,
+} from '../src/services/aiDirectorService.js';
+
+const sampleDirectorPlan: DirectorPlan = {
+  title: 'AI 校园短片方案',
+  storyLogline: '围绕图书馆里的学习状态展开的一天。',
+  beatSummary: ['建立环境', '推进状态', '完成收尾'],
+  shotTasks: [
+    {
+      id: 'shot_01',
+      orderIndex: 1,
+      title: '图书馆开场',
+      goal: '先建立空间和人物状态',
+      shotType: '中景',
+      durationSuggestSec: 4,
+      compositionHint: '人物保持在三分线附近',
+      actionHint: '自然翻页',
+      status: 'Planned',
+      capturedClipIds: [],
+      latestReview: null,
+      beatLabel: '开场建立',
+      whyThisShotMatters: '让观众快速进入今天的氛围',
+      successChecklist: ['人物清晰', '画面稳定'],
+      difficultyHint: '先稳住镜头再录',
+      retakePriority: 'High',
+    },
+  ],
+};
+
+const sampleClipReview: ClipReview = {
+  clipId: 'clip_1',
+  usable: true,
+  score: 89,
+  issues: ['这一条已经达到了当前镜头目标'],
+  suggestion: '已经可用，继续推进下一个镜头。',
+  stabilityScore: 88,
+  subjectScore: 90,
+  compositionScore: 87,
+  emotionScore: 91,
+  keepReason: '这条可以先保留。',
+  retakeReason: '',
+  nextAction: '继续推进下一个镜头。',
+};
+
+const sampleAssemblySuggestion: AssemblySuggestion = {
+  orderedClipIds: ['clip_1'],
+  missingShotIds: ['shot_02'],
+  titleOptions: ['图书馆的一天'],
+  captionDraft: ['把今天安静留下来。'],
+  missingBeatLabels: ['结尾收束'],
+  editingDirection: '先接开场，再补一个结尾。',
+  selectionReasonByClipId: {
+    clip_1: '它已经承担了开场建立。',
+  },
+};
+
+const sampleBrief = {
+  title: '图书馆状态记录',
+  theme: '安静自习日常',
+  style: '清新温暖',
+  durationSec: 60,
+  castCount: 1,
+  locations: ['图书馆'],
+  needCaption: true,
+  needVoiceover: false,
+  shootGoal: '拍出一条今天就能分享的校园短片',
+  mood: '温和',
+  highlightSubject: '图书馆里的学习状态',
+  soloMode: false,
+  timePressure: 'Medium',
+};
+
+const sampleShotTask = {
+  id: 'shot_01',
+  orderIndex: 1,
+  title: '图书馆开场',
+  goal: '先建立空间和人物状态',
+  shotType: '中景',
+  durationSuggestSec: 4,
+  compositionHint: '人物保持在三分线附近',
+  actionHint: '自然翻页',
+  status: 'Planned',
+  capturedClipIds: [],
+  latestReview: null,
+  beatLabel: '开场建立',
+  whyThisShotMatters: '让观众快速进入今天的氛围',
+  successChecklist: ['人物清晰', '画面稳定'],
+  difficultyHint: '先稳住镜头再录',
+  retakePriority: 'High',
+};
+
+const sampleProject = {
+  id: 'proj_1',
+  title: '测试项目',
+  templateId: 'campus_life',
+  status: 'ReviewReady',
+  brief: sampleBrief,
+  directorPlan: sampleDirectorPlan,
+  clips: [
+    {
+      id: 'clip_1',
+      shotTaskId: 'shot_01',
+      localPath: 'content://clip/1',
+      durationSec: 3.4,
+      thumbnailLabel: '开场',
+      review: sampleClipReview,
+    },
+  ],
+  assemblySuggestion: null,
+};
+
+function createService(overrides?: Partial<AiDirectorService>): AiDirectorService {
+  return {
+    async generateDirectorPlan() {
+      return sampleDirectorPlan;
+    },
+    async reviewClip() {
+      return sampleClipReview;
+    },
+    async buildAssembly() {
+      return sampleAssemblySuggestion;
+    },
+    ...overrides,
+  };
+}
+
+describe('AI routes', () => {
+  let app: FastifyInstance | undefined;
+
+  afterEach(async () => {
+    await app?.close();
+    app = undefined;
+  });
+
+  it('returns director plan envelope for valid request', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      payload: { brief: sampleBrief },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      success: true,
+      error: null,
+      data: {
+        title: 'AI 校园短片方案',
+      },
+    });
+  });
+
+  it('returns clip review envelope for valid request', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/clip-review',
+      payload: { shotTask: sampleShotTask, attemptNumber: 2 },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      success: true,
+      error: null,
+      data: {
+        score: 89,
+        usable: true,
+      },
+    });
+  });
+
+  it('returns assembly suggestion envelope for valid request', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/assembly-suggestion',
+      payload: { project: sampleProject },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      success: true,
+      error: null,
+      data: {
+        orderedClipIds: ['clip_1'],
+      },
+    });
+  });
+
+  it('returns 400 envelope when request body is invalid', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      payload: { brief: { title: 'only title' } },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: '请求参数不合法。',
+    });
+  });
+
+  it('returns 502 envelope when upstream provider fails', async () => {
+    app = buildApp({
+      aiDirectorService: createService({
+        async generateDirectorPlan() {
+          throw new UpstreamAiError('upstream unavailable');
+        },
+      }),
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      payload: { brief: sampleBrief },
+    });
+
+    expect(response.statusCode).toBe(502);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: 'AI 服务暂时不可用，请稍后重试。',
+    });
+  });
+
+  it('returns 502 envelope when provider output is structurally invalid', async () => {
+    app = buildApp({
+      aiDirectorService: createService({
+        async generateDirectorPlan() {
+          return {
+            title: 'AI 校园短片方案',
+          } as DirectorPlan;
+        },
+      }),
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      payload: { brief: sampleBrief },
+    });
+
+    expect(response.statusCode).toBe(502);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: 'AI 返回的数据格式不正确。',
+    });
+  });
+
+  it('reads optional model base url for proxy upstream', () => {
+    const env = readEnv({
+      HOST: '127.0.0.1',
+      PORT: '8787',
+      MODEL_PROVIDER: 'openai-compatible',
+      MODEL_BASE_URL: 'http://127.0.0.1:8317',
+      MODEL_API_KEY: 'test-key',
+      MODEL_NAME: 'gpt-4o-mini',
+      REQUEST_TIMEOUT_MS: '120000',
+    });
+
+    expect(env.MODEL_BASE_URL).toBe('http://127.0.0.1:8317');
+    expect(env.REQUEST_TIMEOUT_MS).toBe(120000);
+  });
+});
