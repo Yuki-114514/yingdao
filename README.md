@@ -1,5 +1,7 @@
 # YingDao
 
+中文说明： [README.zh-CN.md](./README.zh-CN.md)
+
 YingDao is a mobile filming assistant project for campus-style shooting workflows. It currently includes:
 
 - an Android app built with Kotlin, Jetpack Compose, and CameraX
