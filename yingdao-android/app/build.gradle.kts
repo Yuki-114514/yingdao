@@ -1,4 +1,19 @@
 import groovy.json.JsonOutput
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use(::load)
+    }
+}
+
+fun configValue(name: String, fallback: String): String {
+    return providers
+        .gradleProperty(name)
+        .orElse(localProperties.getProperty(name) ?: fallback)
+        .get()
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -27,19 +42,15 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "AI_BASE_URL", "\"http://10.0.2.2:8787\"")
-            buildConfigField("String", "AI_APP_TOKEN", "\"\"")
+            val debugAiBaseUrl = configValue("YINGDAO_DEBUG_AI_BASE_URL", "http://10.0.2.2:8787")
+            val debugAiAppToken = configValue("YINGDAO_DEBUG_AI_APP_TOKEN", "")
+            buildConfigField("String", "AI_BASE_URL", JsonOutput.toJson(debugAiBaseUrl))
+            buildConfigField("String", "AI_APP_TOKEN", JsonOutput.toJson(debugAiAppToken))
         }
 
         release {
-            val releaseAiBaseUrl = providers
-                .gradleProperty("YINGDAO_RELEASE_AI_BASE_URL")
-                .orElse("https://example.invalid/")
-                .get()
-            val releaseAiAppToken = providers
-                .gradleProperty("YINGDAO_RELEASE_AI_APP_TOKEN")
-                .orElse("")
-                .get()
+            val releaseAiBaseUrl = configValue("YINGDAO_RELEASE_AI_BASE_URL", "https://example.invalid/")
+            val releaseAiAppToken = configValue("YINGDAO_RELEASE_AI_APP_TOKEN", "")
             require(releaseAiAppToken.isNotBlank() || releaseAiBaseUrl == "https://example.invalid/") {
                 "YINGDAO_RELEASE_AI_APP_TOKEN must be set when YINGDAO_RELEASE_AI_BASE_URL is configured."
             }
