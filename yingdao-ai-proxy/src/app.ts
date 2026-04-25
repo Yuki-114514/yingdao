@@ -36,7 +36,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   });
   const env = options.aiDirectorService ? undefined : readEnv();
   const aiDirectorService = options.aiDirectorService ?? createAiDirectorService(env);
-  const appToken = options.appToken ?? env?.APP_TOKEN ?? '';
+  const appToken = (options.appToken ?? env?.APP_TOKEN ?? '').trim();
   const rateLimit = options.rateLimit ?? {
     maxRequests: env?.RATE_LIMIT_MAX_REQUESTS ?? DEFAULT_RATE_LIMIT_MAX_REQUESTS,
     windowMs: env?.RATE_LIMIT_WINDOW_MS ?? DEFAULT_RATE_LIMIT_WINDOW_MS,
@@ -78,7 +78,8 @@ function registerRequestGuards(
       return reply.code(429).send(failureEnvelope('请求过于频繁，请稍后再试。'));
     }
 
-    if (appToken && request.headers[APP_TOKEN_HEADER] !== appToken) {
+    const requestAppToken = String(request.headers[APP_TOKEN_HEADER] ?? '').trim();
+    if (appToken && requestAppToken !== appToken) {
       return reply.code(401).send(failureEnvelope('请求未授权。'));
     }
   });
