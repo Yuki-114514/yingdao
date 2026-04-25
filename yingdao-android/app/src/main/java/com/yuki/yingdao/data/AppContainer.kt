@@ -5,10 +5,11 @@ import com.yuki.yingdao.BuildConfig
 object AppContainer {
     fun aiDirectorService(): AiDirectorService {
         val baseUrl = BuildConfig.AI_BASE_URL.trim()
+        val appToken = BuildConfig.AI_APP_TOKEN.trim()
         return if (baseUrl.isBlank() || baseUrl == "https://example.invalid/") {
             MisconfiguredAiDirectorService()
         } else {
-            RemoteAiDirectorService(baseUrl = baseUrl)
+            RemoteAiDirectorService(baseUrl = baseUrl, appToken = appToken)
         }
     }
 }

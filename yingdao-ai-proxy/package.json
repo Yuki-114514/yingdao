@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/src/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=20 <25"
   },
   "dependencies": {
     "dotenv": "^17.2.3",

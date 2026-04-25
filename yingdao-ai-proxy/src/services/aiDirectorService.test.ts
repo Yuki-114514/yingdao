@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { describe, expect, it } from 'vitest';
 import { DefaultAiDirectorService } from './aiDirectorService.js';
 import type { ProviderClient } from './providerClient.js';
@@ -24,7 +25,7 @@ describe('DefaultAiDirectorService', () => {
     let capturedSystemPrompt = '';
 
     const providerClient: ProviderClient = {
-      async generateObject(input) {
+      async generateObject<T>(input: { systemPrompt: string; userPrompt: string; schema: z.ZodSchema<T> }): Promise<T> {
         capturedSystemPrompt = input.systemPrompt;
         return {
           title: 'AI 校园短片方案',
@@ -50,7 +51,7 @@ describe('DefaultAiDirectorService', () => {
               retakePriority: 'High',
             },
           ],
-        };
+        } as T;
       },
     };
 
@@ -70,7 +71,7 @@ describe('DefaultAiDirectorService', () => {
 
   it('maps an alternate upstream director plan shape into the Android contract', async () => {
     const providerClient: ProviderClient = {
-      async generateObject() {
+      async generateObject<T>(): Promise<T> {
         return {
           title: '图书馆状态记录',
           summary: {
@@ -87,7 +88,7 @@ describe('DefaultAiDirectorService', () => {
               caption: '今天的图书馆，还是很安静',
             },
           ],
-        };
+        } as T;
       },
     };
 
@@ -116,7 +117,7 @@ describe('DefaultAiDirectorService', () => {
 
   it('normalizes string captionDraft into an array for assembly suggestion output', async () => {
     const providerClient: ProviderClient = {
-      async generateObject() {
+      async generateObject<T>(): Promise<T> {
         return {
           orderedClipIds: ['clip_1'],
           missingShotIds: [],
@@ -127,7 +128,7 @@ describe('DefaultAiDirectorService', () => {
           selectionReasonByClipId: {
             clip_1: '画面稳定，适合作为开场。',
           },
-        };
+        } as T;
       },
     };
 

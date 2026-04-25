@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -16,6 +18,7 @@ android {
         versionName = "0.1.0"
 
         buildConfigField("String", "AI_BASE_URL", "\"https://example.invalid/\"")
+        buildConfigField("String", "AI_APP_TOKEN", "\"\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -25,9 +28,23 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "AI_BASE_URL", "\"http://10.0.2.2:8787\"")
+            buildConfigField("String", "AI_APP_TOKEN", "\"\"")
         }
 
         release {
+            val releaseAiBaseUrl = providers
+                .gradleProperty("YINGDAO_RELEASE_AI_BASE_URL")
+                .orElse("https://example.invalid/")
+                .get()
+            val releaseAiAppToken = providers
+                .gradleProperty("YINGDAO_RELEASE_AI_APP_TOKEN")
+                .orElse("")
+                .get()
+            require(releaseAiAppToken.isNotBlank() || releaseAiBaseUrl == "https://example.invalid/") {
+                "YINGDAO_RELEASE_AI_APP_TOKEN must be set when YINGDAO_RELEASE_AI_BASE_URL is configured."
+            }
+            buildConfigField("String", "AI_BASE_URL", JsonOutput.toJson(releaseAiBaseUrl))
+            buildConfigField("String", "AI_APP_TOKEN", JsonOutput.toJson(releaseAiAppToken))
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

@@ -116,7 +116,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
   }
 
   private normalizeOutput<T>(schema: z.ZodSchema<T>, output: unknown): T {
-    if (schema === directorPlanSchema) {
+    if ((schema as unknown) === directorPlanSchema) {
       const normalizedDirectorPlan = this.normalizeDirectorPlanOutput(output);
       const normalizedResult = directorPlanSchema.safeParse(normalizedDirectorPlan);
       if (normalizedResult.success) {
@@ -125,7 +125,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
       throw normalizedResult.error;
     }
 
-    if (schema === assemblySuggestionSchema) {
+    if ((schema as unknown) === assemblySuggestionSchema) {
       const normalizedAssemblySuggestion = this.normalizeAssemblySuggestionOutput(output);
       const normalizedResult = assemblySuggestionSchema.safeParse(normalizedAssemblySuggestion);
       if (normalizedResult.success) {

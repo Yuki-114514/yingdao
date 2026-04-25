@@ -141,6 +141,31 @@ describe('AI routes', () => {
     app = undefined;
   });
 
+  it('returns public health status for cloud health checks', async () => {
+    app = buildApp({
+      aiDirectorService: createService(),
+      appToken: 'demo-token',
+      rateLimit: {
+        maxRequests: 1,
+        windowMs: 60000,
+      },
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/health',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      success: true,
+      data: {
+        status: 'ok',
+      },
+      error: null,
+    });
+  });
+
   it('returns director plan envelope for valid request', async () => {
     app = buildApp({ aiDirectorService: createService() });
 
@@ -264,18 +289,109 @@ describe('AI routes', () => {
     });
   });
 
-  it('reads optional model base url for proxy upstream', () => {
+  it('returns 401 envelope when configured app token is missing', async () => {
+    app = buildApp({
+      aiDirectorService: createService(),
+      appToken: 'demo-token',
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      payload: { brief: sampleBrief },
+    });
+
+    expect(response.statusCode).toBe(401);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: '请求未授权。',
+    });
+  });
+
+  it('accepts request with configured app token', async () => {
+    app = buildApp({
+      aiDirectorService: createService(),
+      appToken: 'demo-token',
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      headers: {
+        'x-yingdao-app-token': 'demo-token',
+      },
+      payload: { brief: sampleBrief },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      success: true,
+      error: null,
+      data: {
+        title: 'AI 校园短片方案',
+      },
+    });
+  });
+
+  it('returns 429 envelope after too many requests from one client', async () => {
+    app = buildApp({
+      aiDirectorService: createService(),
+      rateLimit: {
+        maxRequests: 1,
+        windowMs: 60000,
+      },
+    });
+
+    await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      payload: { brief: sampleBrief },
+    });
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      payload: { brief: sampleBrief },
+    });
+
+    expect(response.statusCode).toBe(429);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: '请求过于频繁，请稍后再试。',
+    });
+  });
+
+  it('keeps localhost default host and accepts NVIDIA DeepSeek config', () => {
     const env = readEnv({
-      HOST: '127.0.0.1',
       PORT: '8787',
       MODEL_PROVIDER: 'openai-compatible',
-      MODEL_BASE_URL: 'http://127.0.0.1:8317',
+      MODEL_BASE_URL: 'https://integrate.api.nvidia.com',
       MODEL_API_KEY: 'test-key',
-      MODEL_NAME: 'gpt-4o-mini',
+      MODEL_NAME: 'deepseek-ai/deepseek-v4-pro',
+      MODEL_JSON_RESPONSE_FORMAT: 'false',
       REQUEST_TIMEOUT_MS: '120000',
     });
 
-    expect(env.MODEL_BASE_URL).toBe('http://127.0.0.1:8317');
+    expect(env.HOST).toBe('127.0.0.1');
+    expect(env.MODEL_BASE_URL).toBe('https://integrate.api.nvidia.com');
+    expect(env.MODEL_NAME).toBe('deepseek-ai/deepseek-v4-pro');
+    expect(env.MODEL_JSON_RESPONSE_FORMAT).toBe(false);
     expect(env.REQUEST_TIMEOUT_MS).toBe(120000);
+  });
+
+  it('requires app token for cloud host deployments', () => {
+    expect(() =>
+      readEnv({
+        HOST: '0.0.0.0',
+        PORT: '8787',
+        MODEL_PROVIDER: 'openai-compatible',
+        MODEL_BASE_URL: 'https://integrate.api.nvidia.com',
+        MODEL_API_KEY: 'test-key',
+        MODEL_NAME: 'deepseek-ai/deepseek-v4-pro',
+        MODEL_JSON_RESPONSE_FORMAT: 'false',
+        REQUEST_TIMEOUT_MS: '120000',
+      }),
+    ).toThrow();
   });
 });

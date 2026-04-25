@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: yingdao-ai-proxy
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: yingdao-ai-proxy
+    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: MODEL_PROVIDER
+        value: openai-compatible
+      - key: MODEL_BASE_URL
+        value: https://integrate.api.nvidia.com
+      - key: MODEL_API_KEY
+        sync: false
+      - key: MODEL_NAME
+        value: deepseek-ai/deepseek-v4-pro
+      - key: MODEL_JSON_RESPONSE_FORMAT
+        value: false
+      - key: REQUEST_TIMEOUT_MS
+        value: 120000
+      - key: APP_TOKEN
+        sync: false
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 30
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 60000

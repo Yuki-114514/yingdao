@@ -78,6 +78,44 @@ class RemoteAiDirectorServiceTest {
     }
 
     @Test
+    fun generateDirectorPlanSendsAppTokenWhenConfigured() = runTest {
+        val server = MockWebServer()
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody(
+                    """
+                    {
+                      "success": true,
+                      "data": {
+                        "title": "AI 校园短片方案",
+                        "storyLogline": "围绕图书馆里的学习状态展开的一天。",
+                        "beatSummary": ["建立环境"],
+                        "shotTasks": []
+                      },
+                      "error": null
+                    }
+                    """.trimIndent(),
+                ),
+        )
+        server.start()
+
+        val service = RemoteAiDirectorService(
+            baseUrl = server.url("/").toString(),
+            appToken = "demo-token",
+            client = OkHttpClient(),
+            gson = gson,
+        )
+
+        service.generateDirectorPlan(CreativeBrief())
+        val request = server.takeRequest()
+
+        assertEquals("demo-token", request.getHeader("X-YingDao-App-Token"))
+
+        server.shutdown()
+    }
+
+    @Test
     fun reviewClipPostsAttemptAndReturnsClipReview() = runTest {
         val server = MockWebServer()
         server.enqueue(

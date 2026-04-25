@@ -80,15 +80,18 @@ npm run dev
 HOST=127.0.0.1
 PORT=8787
 MODEL_PROVIDER=openai-compatible
-MODEL_BASE_URL=http://127.0.0.1:8317
-MODEL_API_KEY=your_cliproxyapi_token_here
-MODEL_NAME=gpt-4o-mini
+MODEL_BASE_URL=https://integrate.api.nvidia.com
+MODEL_API_KEY=your_nvidia_api_key_here
+MODEL_NAME=deepseek-ai/deepseek-v4-pro
+MODEL_JSON_RESPONSE_FORMAT=false
 REQUEST_TIMEOUT_MS=120000
 ```
 
 说明：
 
-- `MODEL_BASE_URL` 需要指向你自己的上游 OpenAI-compatible 服务。
+- NVIDIA NIM 的 `MODEL_BASE_URL` 使用 `https://integrate.api.nvidia.com`。
+- `MODEL_NAME` 使用完整模型 ID：`deepseek-ai/deepseek-v4-pro`。
+- `MODEL_JSON_RESPONSE_FORMAT=false` 用于兼容当前 NVIDIA DeepSeek V4 Pro 接口。
 - `MODEL_API_KEY` 是必填项，必须只保留在本地环境中。
 - `REQUEST_TIMEOUT_MS=120000` 是当前默认值，用于支持耗时更长的导演方案生成请求。
 
@@ -134,12 +137,56 @@ cd yingdao-ios
 swift test
 ```
 
+## 部署到 Render
+
+仓库根目录已经提供 `render.yaml`，可以直接用 Render Blueprint 部署 `yingdao-ai-proxy`：
+
+1. 把代码推到 GitHub，并在 Render 里选择 **New → Blueprint**。
+2. 选择这个仓库，Render 会读取根目录的 `render.yaml`。
+3. 创建时输入以下 `sync: false` 环境变量：
+
+```text
+MODEL_API_KEY=你的 NVIDIA API Key
+APP_TOKEN=给移动端调用代理用的随机长字符串
+```
+
+Render 会自动配置：
+
+- `HOST=0.0.0.0`，用于接收公网请求
+- `MODEL_BASE_URL=https://integrate.api.nvidia.com`
+- `MODEL_NAME=deepseek-ai/deepseek-v4-pro`
+- `MODEL_JSON_RESPONSE_FORMAT=false`
+- `healthCheckPath=/health`
+- `buildCommand=npm ci --include=dev && npm run build && npm prune --omit=dev`
+- `startCommand=npm start`
+
+部署成功后，先访问：
+
+```text
+https://你的-render-service.onrender.com/health
+```
+
+如果返回 `{"success":true,"data":{"status":"ok"},"error":null}`，说明服务已经在线。
+
+### Android release 连接 Render
+
+拿到 Render 的公网地址后，用 Gradle property 构建 release 包：
+
+```bash
+cd yingdao-android
+./gradlew assembleRelease \
+  -PYINGDAO_RELEASE_AI_BASE_URL=https://你的-render-service.onrender.com \
+  -PYINGDAO_RELEASE_AI_APP_TOKEN=同一个_APP_TOKEN
+```
+
+`MODEL_API_KEY` 只放在 Render 环境变量里，不要写进 Android 包。Android 只需要 Render 服务地址和 `APP_TOKEN`。
+
 ## 开发说明
 
 ### Android 网络配置
 
 - Android 模拟器中的 debug 构建通过 `http://10.0.2.2:8787` 访问宿主机代理
-- release 构建目前还没有接入正式生产环境的 AI 地址
+- release 构建通过 `YINGDAO_RELEASE_AI_BASE_URL` 和 `YINGDAO_RELEASE_AI_APP_TOKEN` 接入正式 AI 代理地址
 
 ### 本地密钥与环境文件
 

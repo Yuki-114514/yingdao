@@ -19,6 +19,7 @@ internal const val AI_WRITE_TIMEOUT_SECONDS = 120L
 
 class RemoteAiDirectorService(
     private val baseUrl: String,
+    private val appToken: String = "",
     private val client: OkHttpClient = defaultHttpClient(),
     private val gson: Gson = Gson(),
 ) : AiDirectorService {
@@ -56,10 +57,13 @@ class RemoteAiDirectorService(
     ): Result<T> = withContext(Dispatchers.IO) {
         try {
             val body = gson.toJson(payload).toRequestBody(JSON_MEDIA_TYPE)
-            val request = Request.Builder()
+            val requestBuilder = Request.Builder()
                 .url(resolveUrl(path))
                 .post(body)
-                .build()
+            if (appToken.isNotBlank()) {
+                requestBuilder.header(APP_TOKEN_HEADER, appToken)
+            }
+            val request = requestBuilder.build()
 
             client.newCall(request).execute().use { response ->
                 val rawBody = response.body?.string().orEmpty()
@@ -97,6 +101,7 @@ class RemoteAiDirectorService(
     }
 
     private companion object {
+        const val APP_TOKEN_HEADER = "X-YingDao-App-Token"
         val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
     }
 }

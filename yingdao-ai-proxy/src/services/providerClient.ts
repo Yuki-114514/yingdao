@@ -5,6 +5,7 @@ export type ProviderClientConfig = {
   modelName: string;
   timeoutMs: number;
   baseUrl?: string;
+  useJsonResponseFormat?: boolean;
 };
 
 export interface ProviderClient {
@@ -37,21 +38,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.config.apiKey}`,
       },
-      body: JSON.stringify({
-        model: this.config.modelName,
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: input.systemPrompt,
-          },
-          {
-            role: 'user',
-            content: input.userPrompt,
-          },
-        ],
-      }),
+      body: JSON.stringify(this.buildRequestBody(input)),
       signal: AbortSignal.timeout(this.config.timeoutMs),
     });
 
@@ -68,8 +55,44 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     return input.schema.parse(JSON.parse(text) as unknown);
   }
 
+  private buildRequestBody(input: {
+    systemPrompt: string;
+    userPrompt: string;
+  }): Record<string, unknown> {
+    const baseBody = {
+      model: this.config.modelName,
+      temperature: 0.2,
+      messages: [
+        {
+          role: 'system',
+          content: input.systemPrompt,
+        },
+        {
+          role: 'user',
+          content: input.userPrompt,
+        },
+      ],
+    };
+
+    if (this.config.useJsonResponseFormat === false) {
+      return baseBody;
+    }
+
+    return {
+      ...baseBody,
+      response_format: { type: 'json_object' },
+    };
+  }
+
   private resolveUrl(): string {
     const baseUrl = this.config.baseUrl?.trim() || 'http://127.0.0.1:8317';
-    return `${baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
+    const normalizedBaseUrl = baseUrl.replace(/\/$/, '');
+    if (normalizedBaseUrl.endsWith('/v1/chat/completions')) {
+      return normalizedBaseUrl;
+    }
+    if (normalizedBaseUrl.endsWith('/v1')) {
+      return `${normalizedBaseUrl}/chat/completions`;
+    }
+    return `${normalizedBaseUrl}/v1/chat/completions`;
   }
 }

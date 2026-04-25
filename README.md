@@ -79,15 +79,18 @@ Configure `.env` before starting the server:
 HOST=127.0.0.1
 PORT=8787
 MODEL_PROVIDER=openai-compatible
-MODEL_BASE_URL=http://127.0.0.1:8317
-MODEL_API_KEY=your_cliproxyapi_token_here
-MODEL_NAME=gpt-4o-mini
+MODEL_BASE_URL=https://integrate.api.nvidia.com
+MODEL_API_KEY=your_nvidia_api_key_here
+MODEL_NAME=deepseek-ai/deepseek-v4-pro
+MODEL_JSON_RESPONSE_FORMAT=false
 REQUEST_TIMEOUT_MS=120000
 ```
 
 Notes:
 
-- `MODEL_BASE_URL` must point to your upstream OpenAI-compatible service.
+- NVIDIA NIM uses `https://integrate.api.nvidia.com` for `MODEL_BASE_URL`.
+- `MODEL_NAME` must use the full model ID: `deepseek-ai/deepseek-v4-pro`.
+- `MODEL_JSON_RESPONSE_FORMAT=false` keeps requests compatible with the current NVIDIA DeepSeek V4 Pro API.
 - `MODEL_API_KEY` is required and must stay local.
 - `REQUEST_TIMEOUT_MS=120000` is the current default to allow longer director-plan generations.
 
@@ -133,12 +136,56 @@ cd yingdao-ios
 swift test
 ```
 
+## Deploy to Render
+
+The repository root now includes `render.yaml`, so the AI proxy can be deployed as a Render Blueprint:
+
+1. Push the repository to GitHub, then choose **New → Blueprint** in Render.
+2. Select this repository. Render will read `render.yaml` from the repo root.
+3. During creation, fill in these `sync: false` environment variables:
+
+```text
+MODEL_API_KEY=your NVIDIA API key
+APP_TOKEN=a long random token used by the mobile app
+```
+
+Render configures the rest:
+
+- `HOST=0.0.0.0` for public traffic
+- `MODEL_BASE_URL=https://integrate.api.nvidia.com`
+- `MODEL_NAME=deepseek-ai/deepseek-v4-pro`
+- `MODEL_JSON_RESPONSE_FORMAT=false`
+- `healthCheckPath=/health`
+- `buildCommand=npm ci --include=dev && npm run build && npm prune --omit=dev`
+- `startCommand=npm start`
+
+After the deploy succeeds, verify:
+
+```text
+https://your-render-service.onrender.com/health
+```
+
+The expected response is `{"success":true,"data":{"status":"ok"},"error":null}`.
+
+### Connect Android release builds
+
+After you have the Render URL, build a release APK with Gradle properties:
+
+```bash
+cd yingdao-android
+./gradlew assembleRelease \
+  -PYINGDAO_RELEASE_AI_BASE_URL=https://your-render-service.onrender.com \
+  -PYINGDAO_RELEASE_AI_APP_TOKEN=the_same_APP_TOKEN
+```
+
+Keep `MODEL_API_KEY` only in Render environment variables. Android needs only the Render service URL and `APP_TOKEN`.
+
 ## Development notes
 
 ### Android networking
 
 - debug builds use `http://10.0.2.2:8787` to reach the host machine from the Android emulator
-- release builds are not yet wired to a production AI endpoint
+- release builds use `YINGDAO_RELEASE_AI_BASE_URL` and `YINGDAO_RELEASE_AI_APP_TOKEN` for the production AI proxy endpoint
 
 ### Local secrets
 

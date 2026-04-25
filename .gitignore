@@ -8,6 +8,7 @@ vivo-aigc-2026-application-track/
 
 **/.npm-cache/
 **/package-lock.json
+!yingdao-ai-proxy/package-lock.json
 
 **/.env
 **/.env.*
