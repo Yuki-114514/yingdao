@@ -66,7 +66,7 @@ describe('OpenAiCompatibleProviderClient', () => {
 
     const client = new OpenAiCompatibleProviderClient({
       apiKey: 'test-key',
-      modelName: 'deepseek-ai/deepseek-v4-pro',
+      modelName: 'deepseek-ai/deepseek-v4-flash',
       timeoutMs: 1000,
       baseUrl: 'https://integrate.api.nvidia.com',
       useJsonResponseFormat: false,
@@ -83,6 +83,51 @@ describe('OpenAiCompatibleProviderClient', () => {
     const firstCall = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     const requestBody = JSON.parse(firstCall[1].body as string) as Record<string, unknown>;
     expect(requestBody.response_format).toBeUndefined();
+  });
+
+  it('passes latency tuning parameters to OpenAI-compatible providers', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: '{"ok":true}',
+              },
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      ),
+    );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new OpenAiCompatibleProviderClient({
+      apiKey: 'test-key',
+      modelName: 'deepseek-ai/deepseek-v4-flash',
+      timeoutMs: 1000,
+      baseUrl: 'https://integrate.api.nvidia.com',
+      useJsonResponseFormat: false,
+      maxTokens: 1200,
+      reasoningEffort: 'none',
+    });
+
+    await client.generateObject({
+      systemPrompt: 'return json',
+      userPrompt: 'ok',
+      schema: z.object({
+        ok: z.boolean(),
+      }),
+    });
+
+    const firstCall = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const requestBody = JSON.parse(firstCall[1].body as string) as Record<string, unknown>;
+    expect(requestBody.max_tokens).toBe(1200);
+    expect(requestBody.reasoning_effort).toBe('none');
   });
 
   it('accepts base URLs with or without the OpenAI v1 path', async () => {
@@ -108,7 +153,7 @@ describe('OpenAiCompatibleProviderClient', () => {
 
     const client = new OpenAiCompatibleProviderClient({
       apiKey: 'test-key',
-      modelName: 'deepseek-ai/deepseek-v4-pro',
+      modelName: 'deepseek-ai/deepseek-v4-flash',
       timeoutMs: 1000,
       baseUrl: 'https://integrate.api.nvidia.com/v1',
     });

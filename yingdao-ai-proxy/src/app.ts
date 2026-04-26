@@ -92,6 +92,8 @@ function createAiDirectorService(env = readEnv()): AiDirectorService {
     timeoutMs: env.REQUEST_TIMEOUT_MS,
     baseUrl: env.MODEL_BASE_URL,
     useJsonResponseFormat: env.MODEL_JSON_RESPONSE_FORMAT,
+    maxTokens: env.MODEL_MAX_TOKENS,
+    reasoningEffort: env.MODEL_REASONING_EFFORT,
   });
 
   return new DefaultAiDirectorService(providerClient);

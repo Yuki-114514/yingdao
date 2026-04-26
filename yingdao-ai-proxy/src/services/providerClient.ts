@@ -6,6 +6,8 @@ export type ProviderClientConfig = {
   timeoutMs: number;
   baseUrl?: string;
   useJsonResponseFormat?: boolean;
+  maxTokens?: number;
+  reasoningEffort?: 'none' | 'high' | 'max';
 };
 
 export interface ProviderClient {
@@ -59,7 +61,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     systemPrompt: string;
     userPrompt: string;
   }): Record<string, unknown> {
-    const baseBody = {
+    const baseBody: Record<string, unknown> = {
       model: this.config.modelName,
       temperature: 0.2,
       messages: [
@@ -73,6 +75,14 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
         },
       ],
     };
+
+    if (this.config.maxTokens !== undefined) {
+      baseBody.max_tokens = this.config.maxTokens;
+    }
+
+    if (this.config.reasoningEffort !== undefined) {
+      baseBody.reasoning_effort = this.config.reasoningEffort;
+    }
 
     if (this.config.useJsonResponseFormat === false) {
       return baseBody;

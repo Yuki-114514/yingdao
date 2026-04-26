@@ -81,16 +81,19 @@ PORT=8787
 MODEL_PROVIDER=openai-compatible
 MODEL_BASE_URL=https://integrate.api.nvidia.com
 MODEL_API_KEY=your_nvidia_api_key_here
-MODEL_NAME=deepseek-ai/deepseek-v4-pro
+MODEL_NAME=deepseek-ai/deepseek-v4-flash
 MODEL_JSON_RESPONSE_FORMAT=false
+MODEL_MAX_TOKENS=1200
+MODEL_REASONING_EFFORT=none
 REQUEST_TIMEOUT_MS=120000
 ```
 
 Notes:
 
 - NVIDIA NIM uses `https://integrate.api.nvidia.com` for `MODEL_BASE_URL`.
-- `MODEL_NAME` must use the full model ID: `deepseek-ai/deepseek-v4-pro`.
-- `MODEL_JSON_RESPONSE_FORMAT=false` keeps requests compatible with the current NVIDIA DeepSeek V4 Pro API.
+- `MODEL_NAME` must use the full model ID: `deepseek-ai/deepseek-v4-flash`.
+- `MODEL_JSON_RESPONSE_FORMAT=false` keeps requests compatible with the current NVIDIA DeepSeek V4 Flash API.
+- `MODEL_REASONING_EFFORT=none` and `MODEL_MAX_TOKENS=1200` keep DeepSeek V4 Flash in its low-latency mode.
 - `MODEL_API_KEY` is required and must stay local.
 - `REQUEST_TIMEOUT_MS=120000` is the current default to allow longer director-plan generations.
 
@@ -153,8 +156,10 @@ Render configures the rest:
 
 - `HOST=0.0.0.0` for public traffic
 - `MODEL_BASE_URL=https://integrate.api.nvidia.com`
-- `MODEL_NAME=deepseek-ai/deepseek-v4-pro`
+- `MODEL_NAME=deepseek-ai/deepseek-v4-flash`
 - `MODEL_JSON_RESPONSE_FORMAT=false`
+- `MODEL_MAX_TOKENS=1200`
+- `MODEL_REASONING_EFFORT=none`
 - `healthCheckPath=/health`
 - `buildCommand=npm ci --include=dev && npm run build && npm prune --omit=dev`
 - `startCommand=npm start`
