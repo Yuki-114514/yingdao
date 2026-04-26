@@ -130,6 +130,51 @@ describe('OpenAiCompatibleProviderClient', () => {
     expect(requestBody.reasoning_effort).toBe('none');
   });
 
+  it('allows a request to override the configured max token budget', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: '{"ok":true}',
+              },
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      ),
+    );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new OpenAiCompatibleProviderClient({
+      apiKey: 'test-key',
+      modelName: 'deepseek-ai/deepseek-v4-flash',
+      timeoutMs: 1000,
+      baseUrl: 'https://integrate.api.nvidia.com',
+      useJsonResponseFormat: false,
+      maxTokens: 1200,
+      reasoningEffort: 'none',
+    });
+
+    await client.generateObject({
+      systemPrompt: 'return json',
+      userPrompt: 'ok',
+      schema: z.object({
+        ok: z.boolean(),
+      }),
+      maxTokens: 450,
+    });
+
+    const firstCall = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const requestBody = JSON.parse(firstCall[1].body as string) as Record<string, unknown>;
+    expect(requestBody.max_tokens).toBe(450);
+  });
+
   it('accepts base URLs with or without the OpenAI v1 path', async () => {
     const fetchMock = vi.fn(async () =>
       new Response(

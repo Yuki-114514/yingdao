@@ -16,6 +16,7 @@ export interface ProviderClient {
     userPrompt: string;
     schema: z.ZodSchema<T>;
     timeoutMs?: number;
+    maxTokens?: number;
   }): Promise<T>;
 }
 
@@ -35,6 +36,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     userPrompt: string;
     schema: z.ZodSchema<T>;
     timeoutMs?: number;
+    maxTokens?: number;
   }): Promise<T> {
     const response = await fetch(this.resolveUrl(), {
       method: 'POST',
@@ -62,6 +64,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
   private buildRequestBody(input: {
     systemPrompt: string;
     userPrompt: string;
+    maxTokens?: number;
   }): Record<string, unknown> {
     const baseBody: Record<string, unknown> = {
       model: this.config.modelName,
@@ -78,8 +81,9 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
       ],
     };
 
-    if (this.config.maxTokens !== undefined) {
-      baseBody.max_tokens = this.config.maxTokens;
+    const maxTokens = input.maxTokens ?? this.config.maxTokens;
+    if (maxTokens !== undefined) {
+      baseBody.max_tokens = maxTokens;
     }
 
     if (this.config.reasoningEffort !== undefined) {

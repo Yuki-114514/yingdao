@@ -167,10 +167,36 @@ describe('DefaultAiDirectorService', () => {
     });
   });
 
-  it('builds clip review locally without waiting on the upstream model', async () => {
+  it('uses upstream AI for clip review when it returns a valid response', async () => {
+    let capturedUserPrompt = '';
+    let capturedTimeoutMs = 0;
+    let capturedMaxTokens = 0;
+
     const providerClient: ProviderClient = {
-      async generateObject<T>(): Promise<T> {
-        throw new Error('clip review should not call upstream');
+      async generateObject<T>(input: {
+        systemPrompt: string;
+        userPrompt: string;
+        schema: z.ZodSchema<T>;
+        timeoutMs?: number;
+        maxTokens?: number;
+      }): Promise<T> {
+        capturedUserPrompt = input.userPrompt;
+        capturedTimeoutMs = input.timeoutMs ?? 0;
+        capturedMaxTokens = input.maxTokens ?? 0;
+        return {
+          clipId: '',
+          usable: true,
+          score: 91,
+          issues: ['主体和情绪都比较清楚'],
+          suggestion: '这张可以保留，继续拍下一张。',
+          stabilityScore: 90,
+          subjectScore: 92,
+          compositionScore: 91,
+          emotionScore: 90,
+          keepReason: '主体明确，符合当前任务。',
+          retakeReason: '',
+          nextAction: '继续下一张。',
+        } as T;
       },
     };
 
@@ -181,15 +207,22 @@ describe('DefaultAiDirectorService', () => {
     expect(result).toMatchObject({
       clipId: '',
       usable: true,
-      issues: expect.arrayContaining(['情绪记忆点还不够强']),
+      score: 91,
+      nextAction: '继续下一张。',
     });
-    expect(result.nextAction).toContain('继续推进下一个任务');
+    expect(JSON.parse(capturedUserPrompt)).toMatchObject({
+      task: 'review_clip',
+      attemptNumber: 1,
+      mediaType: 'Photo',
+    });
+    expect(capturedTimeoutMs).toBe(20000);
+    expect(capturedMaxTokens).toBe(450);
   });
 
-  it('defaults omitted clip review media type to video in the local review', async () => {
+  it('falls back to a local clip review when upstream review fails', async () => {
     const providerClient: ProviderClient = {
       async generateObject<T>(): Promise<T> {
-        throw new Error('clip review should not call upstream');
+        throw new Error('clip review timed out');
       },
     };
 
@@ -210,10 +243,97 @@ describe('DefaultAiDirectorService', () => {
     expect(result.suggestion).toContain('镜头');
   });
 
-  it('builds assembly suggestion locally without waiting on the upstream model', async () => {
+  it('uses upstream AI for assembly suggestions when it returns a valid response', async () => {
+    let capturedUserPrompt = '';
+    let capturedTimeoutMs = 0;
+    let capturedMaxTokens = 0;
+
+    const providerClient: ProviderClient = {
+      async generateObject<T>(input: {
+        systemPrompt: string;
+        userPrompt: string;
+        schema: z.ZodSchema<T>;
+        timeoutMs?: number;
+        maxTokens?: number;
+      }): Promise<T> {
+        capturedUserPrompt = input.userPrompt;
+        capturedTimeoutMs = input.timeoutMs ?? 0;
+        capturedMaxTokens = input.maxTokens ?? 0;
+        return {
+          orderedClipIds: ['clip_1'],
+          missingShotIds: [],
+          titleOptions: ['AI 生成的图书馆标题'],
+          captionDraft: ['AI 写出的图书馆文案'],
+          missingBeatLabels: [],
+          editingDirection: 'AI 建议先用环境照，再补主体细节。',
+          selectionReasonByClipId: {
+            clip_1: 'AI 判断这张承担了开场建立。',
+          },
+        } as T;
+      },
+    };
+
+    const service = new DefaultAiDirectorService(providerClient);
+
+    const result = await service.buildAssembly({
+      id: 'proj_1',
+      title: '测试项目',
+      templateId: 'campus_life',
+      status: 'ReviewReady',
+      brief: { ...sampleBrief, mediaType: 'Photo' },
+      directorPlan: {
+        title: '图书馆状态记录',
+        storyLogline: '记录图书馆的一天。',
+        beatSummary: ['建立环境', '补足细节'],
+        shotTasks: [
+          {
+            ...sampleShotTask,
+            id: 'shot_01',
+            status: 'Approved',
+            capturedClipIds: ['clip_1'],
+            latestReview: null,
+          },
+          {
+            ...sampleShotTask,
+            id: 'shot_02',
+            orderIndex: 2,
+            beatLabel: '细节补强',
+            status: 'Planned',
+          },
+        ],
+      },
+      clips: [
+        {
+          id: 'clip_1',
+          shotTaskId: 'shot_01',
+          localPath: 'content://clip/1',
+          durationSec: 0,
+          thumbnailLabel: '开场',
+          mediaType: 'Photo',
+          review: null,
+        },
+      ],
+      assemblySuggestion: null,
+    });
+
+    expect(result.titleOptions).toEqual(['AI 生成的图书馆标题']);
+    expect(result.selectionReasonByClipId).toEqual({
+      clip_1: 'AI 判断这张承担了开场建立。',
+    });
+    expect(JSON.parse(capturedUserPrompt)).toMatchObject({
+      task: 'build_assembly',
+      project: {
+        id: 'proj_1',
+      },
+    });
+    expect(capturedTimeoutMs).toBe(20000);
+    expect(capturedMaxTokens).toBe(700);
+  });
+
+  it('falls back to a local assembly suggestion when upstream assembly fails', async () => {
     const providerClient: ProviderClient = {
       async generateObject<T>(): Promise<T> {
-        throw new Error('assembly suggestion should not call upstream');
+        throw new Error('assembly timed out');
       },
     };
 

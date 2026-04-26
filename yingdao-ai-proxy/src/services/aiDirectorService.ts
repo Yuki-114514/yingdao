@@ -49,6 +49,11 @@ const alternateDirectorPlanSchema = z.object({
 });
 
 const DIRECTOR_PLAN_AI_TIMEOUT_MS = 20000;
+const DIRECTOR_PLAN_MAX_TOKENS = 900;
+const CLIP_REVIEW_AI_TIMEOUT_MS = 20000;
+const CLIP_REVIEW_MAX_TOKENS = 450;
+const ASSEMBLY_AI_TIMEOUT_MS = 20000;
+const ASSEMBLY_MAX_TOKENS = 700;
 
 export interface AiDirectorService {
   generateDirectorPlan(brief: CreativeBrief): Promise<DirectorPlan>;
@@ -74,6 +79,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
           '你是日常影像拍摄助手，覆盖日常、美食、旅行、宠物、穿搭、学习、朋友聚会等主题，不局限校园。只返回 JSON 对象。字段只能有：title、storyLogline、beatSummary、shotTasks。beatSummary 必须是字符串数组。shotTasks 每项只能有：id、orderIndex、title、goal、shotType、durationSuggestSec、compositionHint、actionHint、status、capturedClipIds、latestReview、beatLabel、whyThisShotMatters、successChecklist、difficultyHint、retakePriority。latestReview 必须为 null。status 只能是 Planned、Active、Captured、Approved、RetakeSuggested、Skipped。retakePriority 只能是 Low、Medium、High。镜头数不超过 5。mediaType 为 Photo 时输出拍照任务，避免录制、运镜、收音建议；mediaType 为 Video 时输出视频镜头任务。每个字段尽量简洁。',
         userPrompt: JSON.stringify({ task: 'generate_director_plan', brief }),
         timeoutMs: DIRECTOR_PLAN_AI_TIMEOUT_MS,
+        maxTokens: DIRECTOR_PLAN_MAX_TOKENS,
       });
     } catch {
       return this.buildLocalDirectorPlan(brief);
@@ -85,11 +91,39 @@ export class DefaultAiDirectorService implements AiDirectorService {
     attemptNumber: number,
     mediaType?: ReviewClipRequest['mediaType'],
   ): Promise<ClipReview> {
-    return this.buildLocalClipReview(shotTask, attemptNumber, mediaType ?? 'Video');
+    const resolvedMediaType = mediaType ?? 'Video';
+    try {
+      return await this.generateStructured({
+        schema: clipReviewSchema,
+        systemPrompt:
+          '你是日常影像拍后点评助手。你看不到真实媒体，只能根据 shotTask、attemptNumber、mediaType 给出可执行点评。只返回 JSON 对象，字段只能有：clipId、usable、score、issues、suggestion、stabilityScore、subjectScore、compositionScore、emotionScore、keepReason、retakeReason、nextAction。分数必须是 0 到 100 的整数。Photo 用照片表达，Video 用视频表达。内容要具体、简洁。',
+        userPrompt: JSON.stringify({
+          task: 'review_clip',
+          shotTask,
+          attemptNumber,
+          mediaType: resolvedMediaType,
+        }),
+        timeoutMs: CLIP_REVIEW_AI_TIMEOUT_MS,
+        maxTokens: CLIP_REVIEW_MAX_TOKENS,
+      });
+    } catch {
+      return this.buildLocalClipReview(shotTask, attemptNumber, resolvedMediaType);
+    }
   }
 
   async buildAssembly(project: Project): Promise<AssemblySuggestion> {
-    return this.buildLocalAssemblySuggestion(project);
+    try {
+      return await this.generateStructured({
+        schema: assemblySuggestionSchema,
+        systemPrompt:
+          '你是日常影像整理助手。根据 project 的 brief、shotTasks、clips 和 review 生成出片建议。只返回 JSON 对象，字段只能有：orderedClipIds、missingShotIds、titleOptions、captionDraft、missingBeatLabels、editingDirection、selectionReasonByClipId。selectionReasonByClipId 的键必须是 clipId。内容简洁，不要 markdown。',
+        userPrompt: JSON.stringify({ task: 'build_assembly', project }),
+        timeoutMs: ASSEMBLY_AI_TIMEOUT_MS,
+        maxTokens: ASSEMBLY_MAX_TOKENS,
+      });
+    } catch {
+      return this.buildLocalAssemblySuggestion(project);
+    }
   }
 
   private buildLocalClipReview(
@@ -193,6 +227,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
     systemPrompt: string;
     userPrompt: string;
     timeoutMs?: number;
+    maxTokens?: number;
   }): Promise<T> {
     try {
       const output = await this.providerClient.generateObject({
@@ -200,6 +235,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
         userPrompt: input.userPrompt,
         schema: z.unknown() as z.ZodSchema<T>,
         timeoutMs: input.timeoutMs,
+        maxTokens: input.maxTokens,
       });
       return this.normalizeOutput(input.schema, output);
     } catch (error) {
