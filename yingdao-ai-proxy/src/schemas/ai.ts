@@ -29,6 +29,7 @@ export const shotStatusSchema = z.enum([
 
 export const timePressureSchema = z.enum(['Low', 'Medium', 'High']);
 export const retakePrioritySchema = z.enum(['Low', 'Medium', 'High']);
+export const mediaTypeSchema = z.enum(['Photo', 'Video']);
 
 export const creativeBriefSchema = z.object({
   title: mediumTextSchema,
@@ -44,6 +45,7 @@ export const creativeBriefSchema = z.object({
   highlightSubject: mediumTextSchema,
   soloMode: z.boolean(),
   timePressure: timePressureSchema,
+  mediaType: mediaTypeSchema.optional(),
 });
 
 export const clipReviewSchema = z.object({
@@ -103,17 +105,26 @@ export const directorPlanSchema = z.object({
   title: mediumTextSchema,
   storyLogline: longTextSchema,
   beatSummary: z.array(shortTextSchema).min(1).max(8),
-  shotTasks: z.array(shotTaskSchema).min(1).max(12),
+  shotTasks: z.array(shotTaskSchema).min(1).max(6),
 });
 
-export const clipAssetSchema = z.object({
+const baseClipAssetSchema = z.object({
   id: z.string().min(1).max(80),
   shotTaskId: z.string().min(1).max(80),
   localPath: clipPathSchema,
-  durationSec: z.number().min(0.1).max(600),
+  durationSec: z.number().min(0).max(600),
   thumbnailLabel: shortTextSchema,
+  mediaType: mediaTypeSchema.optional(),
   review: clipReviewSchema.nullable(),
 });
+
+export const clipAssetSchema = baseClipAssetSchema.refine(
+  (clip) => clip.mediaType === 'Photo' || clip.durationSec > 0,
+  {
+    message: 'Video clips must have a positive duration.',
+    path: ['durationSec'],
+  },
+);
 
 export const assemblySuggestionSchema = z.object({
   orderedClipIds: z.array(z.string().min(1).max(80)).max(20),
@@ -154,6 +165,7 @@ export const generateDirectorPlanRequestSchema = z.object({
 export const reviewClipRequestSchema = z.object({
   shotTask: shotTaskSchema,
   attemptNumber: z.number().int().min(1).max(10),
+  mediaType: mediaTypeSchema.optional(),
 });
 
 export const buildAssemblyRequestSchema = z.object({

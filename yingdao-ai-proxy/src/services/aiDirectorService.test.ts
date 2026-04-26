@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { describe, expect, it } from 'vitest';
 import { DefaultAiDirectorService } from './aiDirectorService.js';
 import type { ProviderClient } from './providerClient.js';
-import type { CreativeBrief } from '../schemas/ai.js';
+import type { CreativeBrief, ShotTask } from '../schemas/ai.js';
 
 const sampleBrief: CreativeBrief = {
   title: '图书馆状态记录',
@@ -20,8 +20,27 @@ const sampleBrief: CreativeBrief = {
   timePressure: 'Medium',
 };
 
+const sampleShotTask: ShotTask = {
+  id: 'shot_01',
+  orderIndex: 1,
+  title: '细节照片',
+  goal: '拍清楚食物细节',
+  shotType: '照片特写',
+  durationSuggestSec: 1,
+  compositionHint: '靠近主体',
+  actionHint: '拍一张清楚照片',
+  status: 'Planned',
+  capturedClipIds: [],
+  latestReview: null,
+  beatLabel: '主体细节',
+  whyThisShotMatters: '让组图更有重点',
+  successChecklist: ['主体清晰'],
+  difficultyHint: '避开杂乱背景',
+  retakePriority: 'Medium',
+};
+
 describe('DefaultAiDirectorService', () => {
-  it('includes Android contract field names in the director plan system prompt', async () => {
+  it('guides photo director plans without short-video framing', async () => {
     let capturedSystemPrompt = '';
 
     const providerClient: ProviderClient = {
@@ -57,8 +76,12 @@ describe('DefaultAiDirectorService', () => {
 
     const service = new DefaultAiDirectorService(providerClient);
 
-    await service.generateDirectorPlan(sampleBrief);
+    await service.generateDirectorPlan({ ...sampleBrief, mediaType: 'Photo' });
 
+    expect(capturedSystemPrompt).toContain('日常影像');
+    expect(capturedSystemPrompt).toContain('mediaType 为 Photo');
+    expect(capturedSystemPrompt).toContain('避免录制、运镜、收音建议');
+    expect(capturedSystemPrompt).not.toContain('校园短视频导演助手');
     expect(capturedSystemPrompt).toContain('title');
     expect(capturedSystemPrompt).toContain('storyLogline');
     expect(capturedSystemPrompt).toContain('beatSummary');
@@ -115,20 +138,53 @@ describe('DefaultAiDirectorService', () => {
     });
   });
 
-  it('normalizes string captionDraft into an array for assembly suggestion output', async () => {
+  it('builds clip review locally without waiting on the upstream model', async () => {
     const providerClient: ProviderClient = {
       async generateObject<T>(): Promise<T> {
-        return {
-          orderedClipIds: ['clip_1'],
-          missingShotIds: [],
-          titleOptions: ['图书馆状态记录'],
-          captionDraft: '今天的图书馆，安静又刚刚好。',
-          missingBeatLabels: ['平静收尾'],
-          editingDirection: '先用 clip_1 建立氛围。',
-          selectionReasonByClipId: {
-            clip_1: '画面稳定，适合作为开场。',
-          },
-        } as T;
+        throw new Error('clip review should not call upstream');
+      },
+    };
+
+    const service = new DefaultAiDirectorService(providerClient);
+
+    const result = await service.reviewClip(sampleShotTask, 1, 'Photo');
+
+    expect(result).toMatchObject({
+      clipId: '',
+      usable: true,
+      issues: expect.arrayContaining(['情绪记忆点还不够强']),
+    });
+    expect(result.nextAction).toContain('继续推进下一个任务');
+  });
+
+  it('defaults omitted clip review media type to video in the local review', async () => {
+    const providerClient: ProviderClient = {
+      async generateObject<T>(): Promise<T> {
+        throw new Error('clip review should not call upstream');
+      },
+    };
+
+    const service = new DefaultAiDirectorService(providerClient);
+
+    const result = await service.reviewClip(
+      {
+        ...sampleShotTask,
+        shotType: '中景',
+        durationSuggestSec: 4,
+        retakePriority: 'Low',
+      },
+      1,
+    );
+
+    expect(result.usable).toBe(true);
+    expect(result.issues).toEqual(['这一条已经达到了当前镜头目标']);
+    expect(result.suggestion).toContain('镜头');
+  });
+
+  it('builds assembly suggestion locally without waiting on the upstream model', async () => {
+    const providerClient: ProviderClient = {
+      async generateObject<T>(): Promise<T> {
+        throw new Error('assembly suggestion should not call upstream');
       },
     };
 
@@ -139,12 +195,48 @@ describe('DefaultAiDirectorService', () => {
       title: '测试项目',
       templateId: 'campus_life',
       status: 'ReviewReady',
-      brief: sampleBrief,
-      directorPlan: null,
-      clips: [],
+      brief: { ...sampleBrief, mediaType: 'Photo' },
+      directorPlan: {
+        title: '图书馆状态记录',
+        storyLogline: '记录图书馆的一天。',
+        beatSummary: ['建立环境', '补足细节'],
+        shotTasks: [
+          {
+            ...sampleShotTask,
+            id: 'shot_01',
+            status: 'Approved',
+            capturedClipIds: ['clip_1'],
+            latestReview: null,
+          },
+          {
+            ...sampleShotTask,
+            id: 'shot_02',
+            orderIndex: 2,
+            beatLabel: '细节补强',
+            status: 'Planned',
+          },
+        ],
+      },
+      clips: [
+        {
+          id: 'clip_1',
+          shotTaskId: 'shot_01',
+          localPath: 'content://clip/1',
+          durationSec: 0,
+          thumbnailLabel: '开场',
+          mediaType: 'Photo',
+          review: null,
+        },
+      ],
       assemblySuggestion: null,
     });
 
-    expect(result.captionDraft).toEqual(['今天的图书馆，安静又刚刚好。']);
+    expect(result.orderedClipIds).toEqual(['clip_1']);
+    expect(result.missingShotIds).toEqual(['shot_02']);
+    expect(result.missingBeatLabels).toEqual(['细节补强']);
+    expect(result.captionDraft[0]).toContain('图书馆');
+    expect(result.selectionReasonByClipId).toEqual({
+      clip_1: '保留它是因为它承担了“主体细节”。',
+    });
   });
 });

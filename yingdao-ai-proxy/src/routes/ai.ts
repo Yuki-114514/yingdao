@@ -41,6 +41,7 @@ export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDire
       const result = await aiDirectorService.reviewClip(
         requestBody.data.shotTask,
         requestBody.data.attemptNumber,
+        requestBody.data.mediaType,
       );
       const validated = clipReviewSchema.parse(result);
       return reply.code(200).send(successEnvelope(validated));

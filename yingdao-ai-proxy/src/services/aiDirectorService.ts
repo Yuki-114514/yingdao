@@ -10,6 +10,7 @@ import {
   type Project,
   shotStatusSchema,
   type ShotTask,
+  type ReviewClipRequest,
 } from '../schemas/ai.js';
 import type { ProviderClient } from './providerClient.js';
 
@@ -49,7 +50,11 @@ const alternateDirectorPlanSchema = z.object({
 
 export interface AiDirectorService {
   generateDirectorPlan(brief: CreativeBrief): Promise<DirectorPlan>;
-  reviewClip(shotTask: ShotTask, attemptNumber: number): Promise<ClipReview>;
+  reviewClip(
+    shotTask: ShotTask,
+    attemptNumber: number,
+    mediaType?: ReviewClipRequest['mediaType'],
+  ): Promise<ClipReview>;
   buildAssembly(project: Project): Promise<AssemblySuggestion>;
 }
 
@@ -63,27 +68,104 @@ export class DefaultAiDirectorService implements AiDirectorService {
     return this.generateStructured({
       schema: directorPlanSchema,
       systemPrompt:
-        '你是校园短视频导演助手。只返回 JSON 对象。字段只能有：title、storyLogline、beatSummary、shotTasks。beatSummary 必须是字符串数组。shotTasks 每项只能有：id、orderIndex、title、goal、shotType、durationSuggestSec、compositionHint、actionHint、status、capturedClipIds、latestReview、beatLabel、whyThisShotMatters、successChecklist、difficultyHint、retakePriority。latestReview 必须为 null。status 只能是 Planned、Active、Captured、Approved、RetakeSuggested、Skipped。retakePriority 只能是 Low、Medium、High。镜头数不超过 4。每个字段尽量简洁。',
+        '你是日常影像拍摄助手，覆盖日常、美食、旅行、宠物、穿搭、学习、朋友聚会等主题，不局限校园。只返回 JSON 对象。字段只能有：title、storyLogline、beatSummary、shotTasks。beatSummary 必须是字符串数组。shotTasks 每项只能有：id、orderIndex、title、goal、shotType、durationSuggestSec、compositionHint、actionHint、status、capturedClipIds、latestReview、beatLabel、whyThisShotMatters、successChecklist、difficultyHint、retakePriority。latestReview 必须为 null。status 只能是 Planned、Active、Captured、Approved、RetakeSuggested、Skipped。retakePriority 只能是 Low、Medium、High。镜头数不超过 6。mediaType 为 Photo 时输出拍照任务，避免录制、运镜、收音建议；mediaType 为 Video 时输出视频镜头任务。每个字段尽量简洁。',
       userPrompt: JSON.stringify({ task: 'generate_director_plan', brief }),
     });
   }
 
-  async reviewClip(shotTask: ShotTask, attemptNumber: number): Promise<ClipReview> {
-    return this.generateStructured({
-      schema: clipReviewSchema,
-      systemPrompt:
-        '你是校园短视频拍后点评助手。只返回严格 JSON 对象，不要返回 markdown，不要返回额外解释，不要包含未要求字段。返回字段必须且只能包含：clipId、usable、score、issues、suggestion、stabilityScore、subjectScore、compositionScore、emotionScore、keepReason、retakeReason、nextAction。所有分数字段都必须是 0 到 100 的整数。',
-      userPrompt: JSON.stringify({ task: 'review_clip', shotTask, attemptNumber }),
-    });
+  async reviewClip(
+    shotTask: ShotTask,
+    attemptNumber: number,
+    mediaType?: ReviewClipRequest['mediaType'],
+  ): Promise<ClipReview> {
+    return this.buildLocalClipReview(shotTask, attemptNumber, mediaType ?? 'Video');
   }
 
   async buildAssembly(project: Project): Promise<AssemblySuggestion> {
-    return this.generateStructured({
-      schema: assemblySuggestionSchema,
-      systemPrompt:
-        '你是校园短视频剪辑助手。只返回严格 JSON 对象，不要返回 markdown，不要返回额外解释，不要包含未要求字段。返回字段必须且只能包含：orderedClipIds、missingShotIds、titleOptions、captionDraft、missingBeatLabels、editingDirection、selectionReasonByClipId。selectionReasonByClipId 必须是对象，键为 clipId，值为对应素材入选原因。',
-      userPrompt: JSON.stringify({ task: 'build_assembly', project }),
+    return this.buildLocalAssemblySuggestion(project);
+  }
+
+  private buildLocalClipReview(
+    shotTask: ShotTask,
+    attemptNumber: number,
+    mediaType: ReviewClipRequest['mediaType'],
+  ): ClipReview {
+    const attemptPenalty = Math.max(attemptNumber - 1, 0) * 4;
+    const baseScoreByPriority = {
+      Low: 84,
+      Medium: 78,
+      High: 72,
+    } satisfies Record<ShotTask['retakePriority'], number>;
+    const baseScore = baseScoreByPriority[shotTask.retakePriority];
+    const stabilityScore = clampScore(baseScore - attemptPenalty, 60, 94);
+    const subjectScore = clampScore(baseScore + 4 - attemptPenalty, 62, 96);
+    const compositionScore = clampScore(baseScore + 2 - attemptPenalty, 61, 95);
+    const emotionScore = clampScore(
+      baseScore + (shotTask.beatLabel === '情绪记忆点' ? 6 : 1) - attemptPenalty,
+      60,
+      96,
+    );
+    const score = Math.round((stabilityScore + subjectScore + compositionScore + emotionScore) / 4);
+    const usable = score >= 80;
+    const isPhotoTask =
+      mediaType === 'Photo' || shotTask.shotType.includes('照片') || shotTask.durationSuggestSec <= 1;
+    const issues = buildReviewIssues({
+      stabilityScore,
+      subjectScore,
+      compositionScore,
+      emotionScore,
+      isPhotoTask,
     });
+    const unit = isPhotoTask ? '照片' : '镜头';
+
+    return {
+      clipId: '',
+      usable,
+      score,
+      issues,
+      suggestion: usable
+        ? `已经可用，重点看是否还想补一个更有层次的${unit}版本。`
+        : `建议补拍，先把当前${unit}的关键交付补齐。`,
+      stabilityScore,
+      subjectScore,
+      compositionScore,
+      emotionScore,
+      keepReason: usable ? `这${isPhotoTask ? '张' : '条'}素材已经完成“${shotTask.whyThisShotMatters}”。` : '',
+      retakeReason: usable ? '' : `当前最影响保留的是：${issues[0]}。`,
+      nextAction: usable
+        ? `这${isPhotoTask ? '张' : '条'}可以先通过，继续推进下一个任务。`
+        : shotTask.successChecklist[0]
+          ? `优先补到：${shotTask.successChecklist[0]}。`
+          : `建议再拍一个更清楚的${unit}版本。`,
+    };
+  }
+
+  private buildLocalAssemblySuggestion(project: Project): AssemblySuggestion {
+    const shotTasks = project.directorPlan?.shotTasks ?? [];
+    const approvedShots = shotTasks.filter((shot) => shot.status === 'Approved');
+    const missingShots = shotTasks.filter((shot) => shot.status !== 'Approved' && shot.status !== 'Skipped');
+    const orderedClipIds = approvedShots.flatMap((shot) => shot.capturedClipIds.slice(-1));
+    const missingBeatLabels = unique(missingShots.map((shot) => shot.beatLabel));
+    const selectionReasonByClipId = Object.fromEntries(
+      approvedShots.flatMap((shot) => {
+        const clipId = shot.capturedClipIds.at(-1);
+        return clipId ? [[clipId, `保留它是因为它承担了“${shot.beatLabel}”。`]] : [];
+      }),
+    );
+    const isPhotoProject = project.brief.mediaType === 'Photo';
+
+    return {
+      orderedClipIds,
+      missingShotIds: missingShots.map((shot) => shot.id),
+      titleOptions: buildTitleOptions(project.brief, isPhotoProject),
+      captionDraft: buildCaptionDraft(project.brief, isPhotoProject),
+      missingBeatLabels,
+      editingDirection:
+        missingBeatLabels.length === 0
+          ? buildCompletedEditingDirection(isPhotoProject)
+          : `建议先补齐 ${missingBeatLabels.join('、')}，再做最终整理。`,
+      selectionReasonByClipId,
+    };
   }
 
   private async generateStructured<T>(input: {
@@ -237,7 +319,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
       storyLogline:
         output.creativeDirection?.coreIdea?.trim() ||
         output.summary?.shootGoal?.trim() ||
-        '围绕当前 brief 生成一条完整校园短片。',
+        '围绕当前 brief 生成一组完整日常影像。',
       beatSummary: beatSummary.length > 0 ? beatSummary : [fallbackBeat],
       shotTasks: output.shotList.map((item, index) => ({
         id: `shot_${String(item.id).trim()}`,
@@ -252,7 +334,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
         capturedClipIds: [],
         latestReview: null,
         beatLabel: (item.scene?.trim() || `段落 ${index + 1}`).slice(0, 120),
-        whyThisShotMatters: (item.content?.trim() || '帮助短片完成叙事推进').slice(0, 240),
+        whyThisShotMatters: (item.content?.trim() || '帮助这组影像完成叙事推进').slice(0, 240),
         successChecklist: [
           (item.caption?.trim() || '主体清晰').slice(0, 120),
           '画面稳定',
@@ -262,6 +344,58 @@ export class DefaultAiDirectorService implements AiDirectorService {
       })),
     };
   }
+}
+
+function clampScore(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function buildReviewIssues(input: {
+  stabilityScore: number;
+  subjectScore: number;
+  compositionScore: number;
+  emotionScore: number;
+  isPhotoTask: boolean;
+}): string[] {
+  const issues = [
+    input.stabilityScore < 78 ? (input.isPhotoTask ? '画面清晰度还可以再稳一点' : '画面还不够稳') : '',
+    input.subjectScore < 80 ? '主体还可以再明确' : '',
+    input.compositionScore < 80 ? '构图重心可以再收紧' : '',
+    input.emotionScore < 80 ? '情绪记忆点还不够强' : '',
+  ].filter((item) => item.length > 0);
+
+  if (issues.length > 0) {
+    return issues;
+  }
+
+  return [input.isPhotoTask ? '这张已经达到了当前拍照目标' : '这一条已经达到了当前镜头目标'];
+}
+
+function unique(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function buildTitleOptions(brief: CreativeBrief, isPhotoProject: boolean): string[] {
+  const output = isPhotoProject ? '照片' : '小片子';
+  return [
+    `${brief.theme}的${brief.mood}时刻`,
+    `今天的${brief.highlightSubject}`,
+    `把${brief.theme}拍成一${isPhotoProject ? '组' : '条'}${output}`,
+  ];
+}
+
+function buildCaptionDraft(brief: CreativeBrief, isPhotoProject: boolean): string[] {
+  const output = isPhotoProject ? '这组照片' : '这条片子';
+  return [
+    `今天想拍下的，不只是${brief.theme}，还有“${brief.highlightSubject}”这一刻的状态。`,
+    `${output}想留下的是一种${brief.mood}的生活节奏。`,
+  ];
+}
+
+function buildCompletedEditingDirection(isPhotoProject: boolean): string {
+  return isPhotoProject
+    ? '当前照片已经覆盖了环境、主体、细节、情绪和收尾，可以按这个顺序直接挑图发布。'
+    : '当前镜头已经覆盖了开场、人物和收尾，可以按环境、人物、情绪、收束的顺序直接成片。';
 }
 
 export type { AssemblySuggestion, ClipReview, DirectorPlan };

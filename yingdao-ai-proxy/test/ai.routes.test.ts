@@ -110,8 +110,9 @@ const sampleProject = {
       id: 'clip_1',
       shotTaskId: 'shot_01',
       localPath: 'content://clip/1',
-      durationSec: 3.4,
+      durationSec: 0,
       thumbnailLabel: '开场',
+      mediaType: 'Photo',
       review: sampleClipReview,
     },
   ],
@@ -185,6 +186,27 @@ describe('AI routes', () => {
     });
   });
 
+  it('accepts photo media type in director plan requests', async () => {
+    let capturedMediaType = '';
+    app = buildApp({
+      aiDirectorService: createService({
+        async generateDirectorPlan(brief) {
+          capturedMediaType = brief.mediaType ?? '';
+          return sampleDirectorPlan;
+        },
+      }),
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/director-plan',
+      payload: { brief: { ...sampleBrief, mediaType: 'Photo' } },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(capturedMediaType).toBe('Photo');
+  });
+
   it('returns clip review envelope for valid request', async () => {
     app = buildApp({ aiDirectorService: createService() });
 
@@ -205,6 +227,44 @@ describe('AI routes', () => {
     });
   });
 
+  it('passes photo media type to clip review service', async () => {
+    let capturedMediaType = '';
+    app = buildApp({
+      aiDirectorService: createService({
+        async reviewClip(_shotTask, _attemptNumber, mediaType) {
+          capturedMediaType = mediaType ?? '';
+          return sampleClipReview;
+        },
+      }),
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/clip-review',
+      payload: { shotTask: sampleShotTask, attemptNumber: 2, mediaType: 'Photo' },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(capturedMediaType).toBe('Photo');
+  });
+
+  it('returns 400 envelope for invalid clip review media type', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/clip-review',
+      payload: { shotTask: sampleShotTask, attemptNumber: 2, mediaType: 'Audio' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: '请求参数不合法。',
+    });
+  });
+
   it('returns assembly suggestion envelope for valid request', async () => {
     app = buildApp({ aiDirectorService: createService() });
 
@@ -221,6 +281,57 @@ describe('AI routes', () => {
       data: {
         orderedClipIds: ['clip_1'],
       },
+    });
+  });
+
+  it('rejects zero-duration assembly clips unless they are photos', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/assembly-suggestion',
+      payload: {
+        project: {
+          ...sampleProject,
+          clips: [
+            {
+              ...sampleProject.clips[0],
+              mediaType: 'Video',
+              durationSec: 0,
+            },
+          ],
+        },
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: '请求参数不合法。',
+    });
+  });
+
+  it('treats omitted assembly clip media type as video duration validation', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const { mediaType: _mediaType, ...clipWithoutMediaType } = sampleProject.clips[0];
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/assembly-suggestion',
+      payload: {
+        project: {
+          ...sampleProject,
+          clips: [clipWithoutMediaType],
+        },
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: '请求参数不合法。',
     });
   });
 
@@ -368,14 +479,14 @@ describe('AI routes', () => {
       MODEL_PROVIDER: 'openai-compatible',
       MODEL_BASE_URL: 'https://integrate.api.nvidia.com',
       MODEL_API_KEY: 'test-key',
-      MODEL_NAME: 'deepseek-ai/deepseek-v4-pro',
+      MODEL_NAME: 'deepseek-ai/deepseek-v4-flash',
       MODEL_JSON_RESPONSE_FORMAT: 'false',
       REQUEST_TIMEOUT_MS: '120000',
     });
 
     expect(env.HOST).toBe('127.0.0.1');
     expect(env.MODEL_BASE_URL).toBe('https://integrate.api.nvidia.com');
-    expect(env.MODEL_NAME).toBe('deepseek-ai/deepseek-v4-pro');
+    expect(env.MODEL_NAME).toBe('deepseek-ai/deepseek-v4-flash');
     expect(env.MODEL_JSON_RESPONSE_FORMAT).toBe(false);
     expect(env.REQUEST_TIMEOUT_MS).toBe(120000);
   });
@@ -388,7 +499,7 @@ describe('AI routes', () => {
         MODEL_PROVIDER: 'openai-compatible',
         MODEL_BASE_URL: 'https://integrate.api.nvidia.com',
         MODEL_API_KEY: 'test-key',
-        MODEL_NAME: 'deepseek-ai/deepseek-v4-pro',
+        MODEL_NAME: 'deepseek-ai/deepseek-v4-flash',
         MODEL_JSON_RESPONSE_FORMAT: 'false',
         REQUEST_TIMEOUT_MS: '120000',
       }),
