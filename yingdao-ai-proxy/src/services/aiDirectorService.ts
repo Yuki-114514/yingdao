@@ -274,6 +274,15 @@ export class DefaultAiDirectorService implements AiDirectorService {
       throw normalizedResult.error;
     }
 
+    if ((schema as unknown) === clipReviewSchema) {
+      const normalizedClipReview = this.normalizeClipReviewOutput(output);
+      const normalizedResult = clipReviewSchema.safeParse(normalizedClipReview);
+      if (normalizedResult.success) {
+        return normalizedResult.data as T;
+      }
+      throw normalizedResult.error;
+    }
+
     const directResult = schema.safeParse(output);
     if (directResult.success) {
       return directResult.data;
@@ -365,6 +374,25 @@ export class DefaultAiDirectorService implements AiDirectorService {
       ...candidate,
       captionDraft: [candidate.captionDraft],
     };
+  }
+
+  private normalizeClipReviewOutput(output: unknown): unknown {
+    if (typeof output !== 'object' || output === null) {
+      return output;
+    }
+
+    const normalized: Record<string, unknown> = { ...(output as Record<string, unknown>) };
+    for (const key of ['clipId', 'suggestion', 'keepReason', 'retakeReason', 'nextAction']) {
+      if (normalized[key] === null || normalized[key] === undefined) {
+        normalized[key] = '';
+      }
+    }
+
+    if (typeof normalized.issues === 'string') {
+      normalized.issues = [normalized.issues];
+    }
+
+    return normalized;
   }
 
   private mapAlternateDirectorPlan(output: z.infer<typeof alternateDirectorPlanSchema>): DirectorPlan {

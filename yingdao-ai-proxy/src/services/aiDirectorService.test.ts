@@ -219,6 +219,39 @@ describe('DefaultAiDirectorService', () => {
     expect(capturedMaxTokens).toBe(450);
   });
 
+  it('normalizes nullable text fields from upstream clip reviews', async () => {
+    const providerClient: ProviderClient = {
+      async generateObject<T>(): Promise<T> {
+        return {
+          clipId: 'shot_1_attempt_1',
+          usable: false,
+          score: 45,
+          issues: ['主体模糊，对焦不准'],
+          suggestion: '重新对焦主体，确保清晰。',
+          stabilityScore: 60,
+          subjectScore: 40,
+          compositionScore: 35,
+          emotionScore: 50,
+          keepReason: null,
+          retakeReason: '主体模糊且构图不符合任务要求。',
+          nextAction: '建议重拍。',
+        } as T;
+      },
+    };
+
+    const service = new DefaultAiDirectorService(providerClient);
+
+    const result = await service.reviewClip(sampleShotTask, 1, 'Photo');
+
+    expect(result).toMatchObject({
+      clipId: 'shot_1_attempt_1',
+      usable: false,
+      score: 45,
+      keepReason: '',
+      retakeReason: '主体模糊且构图不符合任务要求。',
+    });
+  });
+
   it('falls back to a local clip review when upstream review fails', async () => {
     const providerClient: ProviderClient = {
       async generateObject<T>(): Promise<T> {
