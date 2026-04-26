@@ -42,10 +42,17 @@ const sampleShotTask: ShotTask = {
 describe('DefaultAiDirectorService', () => {
   it('guides photo director plans without short-video framing', async () => {
     let capturedSystemPrompt = '';
+    let capturedTimeoutMs = 0;
 
     const providerClient: ProviderClient = {
-      async generateObject<T>(input: { systemPrompt: string; userPrompt: string; schema: z.ZodSchema<T> }): Promise<T> {
+      async generateObject<T>(input: {
+        systemPrompt: string;
+        userPrompt: string;
+        schema: z.ZodSchema<T>;
+        timeoutMs?: number;
+      }): Promise<T> {
         capturedSystemPrompt = input.systemPrompt;
+        capturedTimeoutMs = input.timeoutMs ?? 0;
         return {
           title: 'AI 校园短片方案',
           storyLogline: '围绕图书馆里的学习状态展开的一天。',
@@ -90,6 +97,28 @@ describe('DefaultAiDirectorService', () => {
     expect(capturedSystemPrompt).toContain('retakePriority');
     expect(capturedSystemPrompt).toContain('beatSummary 必须是字符串数组');
     expect(capturedSystemPrompt).toContain('latestReview 必须为 null');
+    expect(capturedTimeoutMs).toBe(20000);
+  });
+
+  it('falls back to a local director plan when upstream generation fails', async () => {
+    const providerClient: ProviderClient = {
+      async generateObject<T>(): Promise<T> {
+        throw new Error('upstream timed out');
+      },
+    };
+
+    const service = new DefaultAiDirectorService(providerClient);
+
+    const result = await service.generateDirectorPlan({ ...sampleBrief, mediaType: 'Photo' });
+
+    expect(result.title).toBe(sampleBrief.title);
+    expect(result.shotTasks).toHaveLength(4);
+    expect(result.shotTasks[0]).toMatchObject({
+      id: 'shot_01',
+      shotType: '照片 / 环境',
+      status: 'Planned',
+      latestReview: null,
+    });
   });
 
   it('maps an alternate upstream director plan shape into the Android contract', async () => {

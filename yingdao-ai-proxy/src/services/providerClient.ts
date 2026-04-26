@@ -15,6 +15,7 @@ export interface ProviderClient {
     systemPrompt: string;
     userPrompt: string;
     schema: z.ZodSchema<T>;
+    timeoutMs?: number;
   }): Promise<T>;
 }
 
@@ -33,6 +34,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     systemPrompt: string;
     userPrompt: string;
     schema: z.ZodSchema<T>;
+    timeoutMs?: number;
   }): Promise<T> {
     const response = await fetch(this.resolveUrl(), {
       method: 'POST',
@@ -41,7 +43,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
         Authorization: `Bearer ${this.config.apiKey}`,
       },
       body: JSON.stringify(this.buildRequestBody(input)),
-      signal: AbortSignal.timeout(this.config.timeoutMs),
+      signal: AbortSignal.timeout(input.timeoutMs ?? this.config.timeoutMs),
     });
 
     if (!response.ok) {
