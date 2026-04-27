@@ -15,6 +15,8 @@ import {
   UpstreamAiError,
 } from '../services/aiDirectorService.js';
 
+const AI_RESPONSE_HEARTBEAT_INTERVAL_MS = 25000;
+
 export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDirectorService): void {
   app.post('/v1/ai/director-plan', async (request, reply) => {
     const requestBody = generateDirectorPlanRequestSchema.safeParse(request.body);
@@ -22,13 +24,11 @@ export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDire
       return reply.code(400).send(failureEnvelope('请求参数不合法。'));
     }
 
-    try {
-      const result = await aiDirectorService.generateDirectorPlan(requestBody.data.brief);
-      const validated = directorPlanSchema.parse(result);
-      return reply.code(200).send(successEnvelope(validated));
-    } catch (error) {
-      return sendRouteError(reply, error);
-    }
+    return sendAiResponseWithHeartbeat(
+      reply,
+      async () => aiDirectorService.generateDirectorPlan(requestBody.data.brief),
+      (result) => directorPlanSchema.parse(result),
+    );
   });
 
   app.post('/v1/ai/clip-review', async (request, reply) => {
@@ -37,17 +37,15 @@ export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDire
       return reply.code(400).send(failureEnvelope('请求参数不合法。'));
     }
 
-    try {
-      const result = await aiDirectorService.reviewClip(
+    return sendAiResponseWithHeartbeat(
+      reply,
+      async () => aiDirectorService.reviewClip(
         requestBody.data.shotTask,
         requestBody.data.attemptNumber,
         requestBody.data.mediaType,
-      );
-      const validated = clipReviewSchema.parse(result);
-      return reply.code(200).send(successEnvelope(validated));
-    } catch (error) {
-      return sendRouteError(reply, error);
-    }
+      ),
+      (result) => clipReviewSchema.parse(result),
+    );
   });
 
   app.post('/v1/ai/assembly-suggestion', async (request, reply) => {
@@ -56,22 +54,84 @@ export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDire
       return reply.code(400).send(failureEnvelope('请求参数不合法。'));
     }
 
-    try {
-      const result = await aiDirectorService.buildAssembly(requestBody.data.project);
-      const validated = assemblySuggestionSchema.parse(result);
-      return reply.code(200).send(successEnvelope(validated));
-    } catch (error) {
-      return sendRouteError(reply, error);
-    }
+    return sendAiResponseWithHeartbeat(
+      reply,
+      async () => aiDirectorService.buildAssembly(requestBody.data.project),
+      (result) => assemblySuggestionSchema.parse(result),
+    );
   });
 }
 
+async function sendAiResponseWithHeartbeat<T>(
+  reply: FastifyReply,
+  runOperation: () => Promise<T>,
+  validate: (result: T) => T,
+) {
+  let isStreaming = false;
+  const startStreaming = () => {
+    if (isStreaming || reply.raw.destroyed) {
+      return;
+    }
+
+    isStreaming = true;
+    reply.hijack();
+    reply.raw.statusCode = 200;
+    reply.raw.setHeader('Content-Type', 'application/json; charset=utf-8');
+  };
+
+  const heartbeat = setInterval(() => {
+    startStreaming();
+    if (!reply.raw.destroyed) {
+      reply.raw.write(' ');
+    }
+  }, AI_RESPONSE_HEARTBEAT_INTERVAL_MS);
+
+  try {
+    const result = await runOperation();
+    const validated = validate(result);
+    sendJson(reply, isStreaming, 200, successEnvelope(validated));
+  } catch (error) {
+    const routeError = getRouteError(error);
+    sendJson(reply, isStreaming, routeError.statusCode, routeError.body);
+  } finally {
+    clearInterval(heartbeat);
+  }
+}
+
+function sendJson(
+  reply: FastifyReply,
+  isStreaming: boolean,
+  statusCode: number,
+  body: ReturnType<typeof successEnvelope> | ReturnType<typeof failureEnvelope>,
+) {
+  if (isStreaming) {
+    reply.raw.end(JSON.stringify(body));
+    return;
+  }
+
+  return reply.code(statusCode).send(body);
+}
+
 function sendRouteError(reply: FastifyReply, error: unknown) {
+  const routeError = getRouteError(error);
+  return reply.code(routeError.statusCode).send(routeError.body);
+}
+
+function getRouteError(error: unknown) {
   if (error instanceof InvalidAiOutputError || error instanceof ZodError) {
-    return reply.code(502).send(failureEnvelope('AI 返回的数据格式不正确。'));
+    return {
+      statusCode: 502,
+      body: failureEnvelope('AI 返回的数据格式不正确。'),
+    };
   }
   if (error instanceof UpstreamAiError) {
-    return reply.code(502).send(failureEnvelope('AI 服务暂时不可用，请稍后重试。'));
+    return {
+      statusCode: 502,
+      body: failureEnvelope('AI 服务暂时不可用，请稍后重试。'),
+    };
   }
-  return reply.code(500).send(failureEnvelope('服务暂时不可用，请稍后重试。'));
+  return {
+    statusCode: 500,
+    body: failureEnvelope('服务暂时不可用，请稍后重试。'),
+  };
 }
