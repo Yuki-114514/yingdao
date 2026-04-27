@@ -481,14 +481,14 @@ describe('AI routes', () => {
       MODEL_API_KEY: 'test-key',
       MODEL_NAME: 'deepseek-ai/deepseek-v4-flash',
       MODEL_JSON_RESPONSE_FORMAT: 'false',
-      REQUEST_TIMEOUT_MS: '120000',
+      REQUEST_TIMEOUT_MS: '240000',
     });
 
     expect(env.HOST).toBe('127.0.0.1');
     expect(env.MODEL_BASE_URL).toBe('https://integrate.api.nvidia.com');
     expect(env.MODEL_NAME).toBe('deepseek-ai/deepseek-v4-flash');
     expect(env.MODEL_JSON_RESPONSE_FORMAT).toBe(false);
-    expect(env.REQUEST_TIMEOUT_MS).toBe(120000);
+    expect(env.REQUEST_TIMEOUT_MS).toBe(240000);
   });
 
   it('requires app token for cloud host deployments', () => {
@@ -501,7 +501,7 @@ describe('AI routes', () => {
         MODEL_API_KEY: 'test-key',
         MODEL_NAME: 'deepseek-ai/deepseek-v4-flash',
         MODEL_JSON_RESPONSE_FORMAT: 'false',
-        REQUEST_TIMEOUT_MS: '120000',
+        REQUEST_TIMEOUT_MS: '240000',
       }),
     ).toThrow();
   });

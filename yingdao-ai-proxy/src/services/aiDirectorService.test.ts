@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { describe, expect, it } from 'vitest';
-import { DefaultAiDirectorService } from './aiDirectorService.js';
+import { DefaultAiDirectorService, UpstreamAiError } from './aiDirectorService.js';
 import type { ProviderClient } from './providerClient.js';
 import type { CreativeBrief, ShotTask } from '../schemas/ai.js';
 
@@ -97,10 +97,10 @@ describe('DefaultAiDirectorService', () => {
     expect(capturedSystemPrompt).toContain('retakePriority');
     expect(capturedSystemPrompt).toContain('beatSummary 必须是字符串数组');
     expect(capturedSystemPrompt).toContain('latestReview 必须为 null');
-    expect(capturedTimeoutMs).toBe(20000);
+    expect(capturedTimeoutMs).toBe(0);
   });
 
-  it('falls back to a local director plan when upstream generation fails', async () => {
+  it('propagates upstream errors instead of falling back to a local director plan', async () => {
     const providerClient: ProviderClient = {
       async generateObject<T>(): Promise<T> {
         throw new Error('upstream timed out');
@@ -109,16 +109,9 @@ describe('DefaultAiDirectorService', () => {
 
     const service = new DefaultAiDirectorService(providerClient);
 
-    const result = await service.generateDirectorPlan({ ...sampleBrief, mediaType: 'Photo' });
-
-    expect(result.title).toBe(sampleBrief.title);
-    expect(result.shotTasks).toHaveLength(4);
-    expect(result.shotTasks[0]).toMatchObject({
-      id: 'shot_01',
-      shotType: '照片 / 环境',
-      status: 'Planned',
-      latestReview: null,
-    });
+    await expect(service.generateDirectorPlan({ ...sampleBrief, mediaType: 'Photo' })).rejects.toThrow(
+      UpstreamAiError,
+    );
   });
 
   it('maps an alternate upstream director plan shape into the Android contract', async () => {
@@ -215,7 +208,7 @@ describe('DefaultAiDirectorService', () => {
       attemptNumber: 1,
       mediaType: 'Photo',
     });
-    expect(capturedTimeoutMs).toBe(20000);
+    expect(capturedTimeoutMs).toBe(0);
     expect(capturedMaxTokens).toBe(450);
   });
 
@@ -252,7 +245,7 @@ describe('DefaultAiDirectorService', () => {
     });
   });
 
-  it('falls back to a local clip review when upstream review fails', async () => {
+  it('propagates upstream errors instead of falling back to a local clip review', async () => {
     const providerClient: ProviderClient = {
       async generateObject<T>(): Promise<T> {
         throw new Error('clip review timed out');
@@ -261,19 +254,7 @@ describe('DefaultAiDirectorService', () => {
 
     const service = new DefaultAiDirectorService(providerClient);
 
-    const result = await service.reviewClip(
-      {
-        ...sampleShotTask,
-        shotType: '中景',
-        durationSuggestSec: 4,
-        retakePriority: 'Low',
-      },
-      1,
-    );
-
-    expect(result.usable).toBe(true);
-    expect(result.issues).toEqual(['这一条已经达到了当前镜头目标']);
-    expect(result.suggestion).toContain('镜头');
+    await expect(service.reviewClip(sampleShotTask, 1, 'Photo')).rejects.toThrow(UpstreamAiError);
   });
 
   it('uses upstream AI for assembly suggestions when it returns a valid response', async () => {
@@ -359,11 +340,11 @@ describe('DefaultAiDirectorService', () => {
         id: 'proj_1',
       },
     });
-    expect(capturedTimeoutMs).toBe(20000);
-    expect(capturedMaxTokens).toBe(700);
+    expect(capturedTimeoutMs).toBe(0);
+    expect(capturedMaxTokens).toBe(900);
   });
 
-  it('falls back to a local assembly suggestion when upstream assembly fails', async () => {
+  it('propagates upstream errors instead of falling back to a local assembly suggestion', async () => {
     const providerClient: ProviderClient = {
       async generateObject<T>(): Promise<T> {
         throw new Error('assembly timed out');
@@ -372,7 +353,7 @@ describe('DefaultAiDirectorService', () => {
 
     const service = new DefaultAiDirectorService(providerClient);
 
-    const result = await service.buildAssembly({
+    await expect(service.buildAssembly({
       id: 'proj_1',
       title: '测试项目',
       templateId: 'campus_life',
@@ -411,14 +392,6 @@ describe('DefaultAiDirectorService', () => {
         },
       ],
       assemblySuggestion: null,
-    });
-
-    expect(result.orderedClipIds).toEqual(['clip_1']);
-    expect(result.missingShotIds).toEqual(['shot_02']);
-    expect(result.missingBeatLabels).toEqual(['细节补强']);
-    expect(result.captionDraft[0]).toContain('图书馆');
-    expect(result.selectionReasonByClipId).toEqual({
-      clip_1: '保留它是因为它承担了“主体细节”。',
-    });
+    })).rejects.toThrow(UpstreamAiError);
   });
 });

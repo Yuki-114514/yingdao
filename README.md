@@ -85,7 +85,7 @@ MODEL_NAME=deepseek-ai/deepseek-v4-flash
 MODEL_JSON_RESPONSE_FORMAT=false
 MODEL_MAX_TOKENS=1200
 MODEL_REASONING_EFFORT=none
-REQUEST_TIMEOUT_MS=120000
+REQUEST_TIMEOUT_MS=240000
 ```
 
 Notes:
@@ -95,7 +95,7 @@ Notes:
 - `MODEL_JSON_RESPONSE_FORMAT=false` keeps requests compatible with the current NVIDIA DeepSeek V4 Flash API.
 - `MODEL_REASONING_EFFORT=none` and `MODEL_MAX_TOKENS=1200` keep DeepSeek V4 Flash in its low-latency mode.
 - `MODEL_API_KEY` is required and must stay local.
-- `REQUEST_TIMEOUT_MS=120000` is the current default to allow longer director-plan generations.
+- `REQUEST_TIMEOUT_MS=240000` lets the proxy wait for slower AI generations instead of returning a local fallback.
 
 ### 2. Run the Android app
 

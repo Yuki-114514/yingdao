@@ -29,7 +29,7 @@ services:
       - key: MODEL_REASONING_EFFORT
         value: none
       - key: REQUEST_TIMEOUT_MS
-        value: 120000
+        value: 240000
       - key: APP_TOKEN
         sync: false
       - key: RATE_LIMIT_MAX_REQUESTS

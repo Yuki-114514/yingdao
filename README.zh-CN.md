@@ -86,7 +86,7 @@ MODEL_NAME=deepseek-ai/deepseek-v4-flash
 MODEL_JSON_RESPONSE_FORMAT=false
 MODEL_MAX_TOKENS=1200
 MODEL_REASONING_EFFORT=none
-REQUEST_TIMEOUT_MS=120000
+REQUEST_TIMEOUT_MS=240000
 ```
 
 说明：
@@ -96,7 +96,7 @@ REQUEST_TIMEOUT_MS=120000
 - `MODEL_JSON_RESPONSE_FORMAT=false` 用于兼容当前 NVIDIA DeepSeek V4 Flash 接口。
 - `MODEL_REASONING_EFFORT=none` 和 `MODEL_MAX_TOKENS=1200` 用于让 DeepSeek V4 Flash 走低延迟模式。
 - `MODEL_API_KEY` 是必填项，必须只保留在本地环境中。
-- `REQUEST_TIMEOUT_MS=120000` 是当前默认值，用于支持耗时更长的导演方案生成请求。
+- `REQUEST_TIMEOUT_MS=240000` 让代理等待更慢的 AI 生成，而不是返回本地兜底模板。
 
 ### 2. 运行 Android 应用
 
