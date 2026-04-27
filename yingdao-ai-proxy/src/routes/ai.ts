@@ -69,13 +69,14 @@ async function sendAiResponseWithHeartbeat<T>(
   validate: (result: T) => T,
 ) {
   let isStreaming = false;
+  reply.hijack();
+
   const startStreaming = () => {
     if (isStreaming || reply.raw.destroyed) {
       return;
     }
 
     isStreaming = true;
-    reply.hijack();
     reply.raw.statusCode = 200;
     reply.raw.setHeader('Content-Type', 'application/json; charset=utf-8');
     reply.raw.flushHeaders();
@@ -106,12 +107,15 @@ function sendJson(
   statusCode: number,
   body: ReturnType<typeof successEnvelope> | ReturnType<typeof failureEnvelope>,
 ) {
+  const json = JSON.stringify(body);
   if (isStreaming) {
-    reply.raw.end(JSON.stringify(body));
+    reply.raw.end(json);
     return;
   }
 
-  return reply.code(statusCode).send(body);
+  reply.raw.statusCode = statusCode;
+  reply.raw.setHeader('Content-Type', 'application/json; charset=utf-8');
+  reply.raw.end(json);
 }
 
 function sendRouteError(reply: FastifyReply, error: unknown) {
