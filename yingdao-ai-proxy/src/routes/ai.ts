@@ -16,6 +16,7 @@ import {
 } from '../services/aiDirectorService.js';
 
 const AI_RESPONSE_HEARTBEAT_INTERVAL_MS = 25000;
+const AI_RESPONSE_HEARTBEAT_CHUNK = '\n'.repeat(2048);
 
 export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDirectorService): void {
   app.post('/v1/ai/director-plan', async (request, reply) => {
@@ -77,12 +78,13 @@ async function sendAiResponseWithHeartbeat<T>(
     reply.hijack();
     reply.raw.statusCode = 200;
     reply.raw.setHeader('Content-Type', 'application/json; charset=utf-8');
+    reply.raw.flushHeaders();
   };
 
   const heartbeat = setInterval(() => {
     startStreaming();
     if (!reply.raw.destroyed) {
-      reply.raw.write(' ');
+      reply.raw.write(AI_RESPONSE_HEARTBEAT_CHUNK);
     }
   }, AI_RESPONSE_HEARTBEAT_INTERVAL_MS);
 
