@@ -89,7 +89,9 @@ function createAiDirectorService(env = readEnv()): AiDirectorService {
   const providerClient = new OpenAiCompatibleProviderClient({
     apiKey: env.MODEL_API_KEY,
     modelName: env.MODEL_NAME,
+    fallbackModelNames: env.MODEL_FALLBACK_NAMES,
     timeoutMs: env.REQUEST_TIMEOUT_MS,
+    attemptTimeoutMs: env.MODEL_ATTEMPT_TIMEOUT_MS,
     baseUrl: env.MODEL_BASE_URL,
     useJsonResponseFormat: env.MODEL_JSON_RESPONSE_FORMAT,
     maxTokens: env.MODEL_MAX_TOKENS,

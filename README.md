@@ -82,8 +82,10 @@ MODEL_PROVIDER=openai-compatible
 MODEL_BASE_URL=https://integrate.api.nvidia.com
 MODEL_API_KEY=your_nvidia_api_key_here
 MODEL_NAME=deepseek-ai/deepseek-v4-pro
+MODEL_FALLBACK_NAMES=meta/llama-3.1-8b-instruct
 MODEL_JSON_RESPONSE_FORMAT=false
 MODEL_MAX_TOKENS=1200
+MODEL_ATTEMPT_TIMEOUT_MS=45000
 MODEL_REASONING_EFFORT=none
 REQUEST_TIMEOUT_MS=240000
 ```
@@ -92,7 +94,9 @@ Notes:
 
 - NVIDIA NIM uses `https://integrate.api.nvidia.com` for `MODEL_BASE_URL`.
 - `MODEL_NAME` must use the full model ID: `deepseek-ai/deepseek-v4-pro`.
+- `MODEL_FALLBACK_NAMES` is optional. The listed cloud model is tried when the primary upstream call times out or fails.
 - `MODEL_JSON_RESPONSE_FORMAT=false` keeps requests compatible with the current NVIDIA DeepSeek API.
+- `MODEL_ATTEMPT_TIMEOUT_MS=45000` prevents one slow upstream attempt from blocking the whole AI job.
 - `MODEL_REASONING_EFFORT=none` and `MODEL_MAX_TOKENS=1200` keep DeepSeek V4 Pro in a lower-latency mode.
 - `MODEL_API_KEY` is required and must stay local.
 - `REQUEST_TIMEOUT_MS=240000` lets the proxy wait for slower AI generations instead of returning a local fallback.
@@ -157,8 +161,10 @@ Render configures the rest:
 - `HOST=0.0.0.0` for public traffic
 - `MODEL_BASE_URL=https://integrate.api.nvidia.com`
 - `MODEL_NAME=deepseek-ai/deepseek-v4-pro`
+- `MODEL_FALLBACK_NAMES=meta/llama-3.1-8b-instruct`
 - `MODEL_JSON_RESPONSE_FORMAT=false`
 - `MODEL_MAX_TOKENS=1200`
+- `MODEL_ATTEMPT_TIMEOUT_MS=45000`
 - `MODEL_REASONING_EFFORT=none`
 - `healthCheckPath=/health`
 - `buildCommand=npm ci --include=dev && npm run build && npm prune --omit=dev`

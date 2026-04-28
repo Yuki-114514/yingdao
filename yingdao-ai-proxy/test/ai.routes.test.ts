@@ -667,14 +667,18 @@ describe('AI routes', () => {
       MODEL_BASE_URL: 'https://integrate.api.nvidia.com',
       MODEL_API_KEY: 'test-key',
       MODEL_NAME: 'deepseek-ai/deepseek-v4-pro',
+      MODEL_FALLBACK_NAMES: 'meta/llama-3.1-8b-instruct',
       MODEL_JSON_RESPONSE_FORMAT: 'false',
+      MODEL_ATTEMPT_TIMEOUT_MS: '45000',
       REQUEST_TIMEOUT_MS: '240000',
     });
 
     expect(env.HOST).toBe('127.0.0.1');
     expect(env.MODEL_BASE_URL).toBe('https://integrate.api.nvidia.com');
     expect(env.MODEL_NAME).toBe('deepseek-ai/deepseek-v4-pro');
+    expect(env.MODEL_FALLBACK_NAMES).toEqual(['meta/llama-3.1-8b-instruct']);
     expect(env.MODEL_JSON_RESPONSE_FORMAT).toBe(false);
+    expect(env.MODEL_ATTEMPT_TIMEOUT_MS).toBe(45000);
     expect(env.REQUEST_TIMEOUT_MS).toBe(240000);
   });
 
@@ -687,7 +691,9 @@ describe('AI routes', () => {
         MODEL_BASE_URL: 'https://integrate.api.nvidia.com',
         MODEL_API_KEY: 'test-key',
         MODEL_NAME: 'deepseek-ai/deepseek-v4-pro',
+        MODEL_FALLBACK_NAMES: 'meta/llama-3.1-8b-instruct',
         MODEL_JSON_RESPONSE_FORMAT: 'false',
+        MODEL_ATTEMPT_TIMEOUT_MS: '45000',
         REQUEST_TIMEOUT_MS: '240000',
       }),
     ).toThrow();

@@ -3,7 +3,9 @@ import { z } from 'zod';
 export type ProviderClientConfig = {
   apiKey: string;
   modelName: string;
+  fallbackModelNames?: string[];
   timeoutMs: number;
+  attemptTimeoutMs?: number;
   baseUrl?: string;
   useJsonResponseFormat?: boolean;
   maxTokens?: number;
@@ -38,13 +40,38 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     timeoutMs?: number;
     maxTokens?: number;
   }): Promise<T> {
+    const modelNames = [this.config.modelName, ...(this.config.fallbackModelNames ?? [])];
+    let lastError: unknown;
+
+    for (const modelName of modelNames) {
+      try {
+        return await this.generateObjectWithModel(input, modelName);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error('AI 服务调用失败。');
+  }
+
+  private async generateObjectWithModel<T>(
+    input: {
+      systemPrompt: string;
+      userPrompt: string;
+      schema: z.ZodSchema<T>;
+      timeoutMs?: number;
+      maxTokens?: number;
+    },
+    modelName: string,
+  ): Promise<T> {
     const startedAt = Date.now();
     const url = this.resolveUrl();
-    const requestBody = this.buildRequestBody(input);
+    const requestBody = this.buildRequestBody(input, modelName);
+    const timeoutMs = input.timeoutMs ?? this.config.attemptTimeoutMs ?? this.config.timeoutMs;
 
     try {
       console.info('ai_provider_request_start', {
-        model: this.config.modelName,
+        model: modelName,
         host: new URL(url).host,
         maxTokens: requestBody.max_tokens ?? null,
         jsonResponseFormat: this.config.useJsonResponseFormat !== false,
@@ -57,7 +84,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
           Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(input.timeoutMs ?? this.config.timeoutMs),
+        signal: AbortSignal.timeout(timeoutMs),
       });
 
       if (!response.ok) {
@@ -72,7 +99,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
       }
 
       console.info('ai_provider_request_success', {
-        model: this.config.modelName,
+        model: modelName,
         durationMs: Date.now() - startedAt,
         contentChars: text.length,
       });
@@ -80,7 +107,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
       return input.schema.parse(JSON.parse(text) as unknown);
     } catch (error) {
       console.warn('ai_provider_request_failed', {
-        model: this.config.modelName,
+        model: modelName,
         durationMs: Date.now() - startedAt,
         errorName: error instanceof Error ? error.name : 'UnknownError',
         errorMessage: error instanceof Error ? error.message.slice(0, 500) : 'Unknown upstream error',
@@ -93,9 +120,9 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     systemPrompt: string;
     userPrompt: string;
     maxTokens?: number;
-  }): Record<string, unknown> {
+  }, modelName: string): Record<string, unknown> {
     const baseBody: Record<string, unknown> = {
-      model: this.config.modelName,
+      model: modelName,
       temperature: 0.2,
       messages: [
         {

@@ -20,6 +20,17 @@ const booleanEnvSchema = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+const stringListEnvSchema = z.preprocess((value) => {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}, z.array(z.string().min(1)));
+
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -29,8 +40,10 @@ const envSchema = z
     MODEL_BASE_URL: z.string().url().default('http://127.0.0.1:8317'),
     MODEL_API_KEY: z.string().min(1),
     MODEL_NAME: z.string().min(1).default('deepseek-ai/deepseek-v4-pro'),
+    MODEL_FALLBACK_NAMES: stringListEnvSchema.default([]),
     MODEL_JSON_RESPONSE_FORMAT: booleanEnvSchema.default(true),
     MODEL_MAX_TOKENS: z.coerce.number().int().positive().optional(),
+    MODEL_ATTEMPT_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
     MODEL_REASONING_EFFORT: z.enum(['none', 'high', 'max']).optional(),
     REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(120000),
     APP_TOKEN: z.string().default(''),

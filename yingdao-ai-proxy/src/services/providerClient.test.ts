@@ -175,6 +175,59 @@ describe('OpenAiCompatibleProviderClient', () => {
     expect(requestBody.max_tokens).toBe(450);
   });
 
+  it('retries with fallback models when the primary upstream call fails', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('primary timed out'))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: '{"ok":true}',
+                },
+              },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new OpenAiCompatibleProviderClient({
+      apiKey: 'test-key',
+      modelName: 'deepseek-ai/deepseek-v4-pro',
+      fallbackModelNames: ['meta/llama-3.1-8b-instruct'],
+      timeoutMs: 240000,
+      attemptTimeoutMs: 45000,
+      baseUrl: 'https://integrate.api.nvidia.com',
+      useJsonResponseFormat: false,
+    });
+
+    const result = await client.generateObject({
+      systemPrompt: 'return json',
+      userPrompt: 'ok',
+      schema: z.object({
+        ok: z.boolean(),
+      }),
+    });
+
+    const primaryCall = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const fallbackCall = fetchMock.mock.calls[1] as unknown as [string, RequestInit];
+    const primaryBody = JSON.parse(primaryCall[1].body as string) as Record<string, unknown>;
+    const fallbackBody = JSON.parse(fallbackCall[1].body as string) as Record<string, unknown>;
+
+    expect(result).toEqual({ ok: true });
+    expect(primaryBody.model).toBe('deepseek-ai/deepseek-v4-pro');
+    expect(fallbackBody.model).toBe('meta/llama-3.1-8b-instruct');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('accepts base URLs with or without the OpenAI v1 path', async () => {
     const fetchMock = vi.fn(async () =>
       new Response(
