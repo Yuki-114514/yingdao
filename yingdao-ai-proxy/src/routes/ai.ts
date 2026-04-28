@@ -1,5 +1,5 @@
 import { type FastifyInstance, type FastifyReply } from 'fastify';
-import { ZodError } from 'zod';
+import { z, ZodError } from 'zod';
 import { failureEnvelope, successEnvelope } from '../lib/envelope.js';
 import {
   assemblySuggestionSchema,
@@ -14,11 +14,80 @@ import {
   InvalidAiOutputError,
   UpstreamAiError,
 } from '../services/aiDirectorService.js';
+import { InMemoryAiJobStore, type PublicAiJob } from '../services/aiJobStore.js';
 
 const AI_RESPONSE_HEARTBEAT_INTERVAL_MS = 25000;
 const AI_RESPONSE_HEARTBEAT_CHUNK = '\n'.repeat(2048);
+const aiJobParamsSchema = z.object({
+  jobId: z.string().min(1).max(120),
+});
 
 export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDirectorService): void {
+  const aiJobStore = new InMemoryAiJobStore();
+
+  app.post('/v1/ai/jobs/director-plan', async (request, reply) => {
+    const requestBody = generateDirectorPlanRequestSchema.safeParse(request.body);
+    if (!requestBody.success) {
+      return reply.code(400).send(failureEnvelope('请求参数不合法。'));
+    }
+
+    const job = aiJobStore.start(
+      async () => aiDirectorService.generateDirectorPlan(requestBody.data.brief),
+      (result) => directorPlanSchema.parse(result),
+      toJobErrorMessage,
+    );
+
+    return reply.code(202).send(successEnvelope(toStartJobResponse(job)));
+  });
+
+  app.post('/v1/ai/jobs/clip-review', async (request, reply) => {
+    const requestBody = reviewClipRequestSchema.safeParse(request.body);
+    if (!requestBody.success) {
+      return reply.code(400).send(failureEnvelope('请求参数不合法。'));
+    }
+
+    const job = aiJobStore.start(
+      async () => aiDirectorService.reviewClip(
+        requestBody.data.shotTask,
+        requestBody.data.attemptNumber,
+        requestBody.data.mediaType,
+      ),
+      (result) => clipReviewSchema.parse(result),
+      toJobErrorMessage,
+    );
+
+    return reply.code(202).send(successEnvelope(toStartJobResponse(job)));
+  });
+
+  app.post('/v1/ai/jobs/assembly-suggestion', async (request, reply) => {
+    const requestBody = buildAssemblyRequestSchema.safeParse(request.body);
+    if (!requestBody.success) {
+      return reply.code(400).send(failureEnvelope('请求参数不合法。'));
+    }
+
+    const job = aiJobStore.start(
+      async () => aiDirectorService.buildAssembly(requestBody.data.project),
+      (result) => assemblySuggestionSchema.parse(result),
+      toJobErrorMessage,
+    );
+
+    return reply.code(202).send(successEnvelope(toStartJobResponse(job)));
+  });
+
+  app.get('/v1/ai/jobs/:jobId', async (request, reply) => {
+    const requestParams = aiJobParamsSchema.safeParse(request.params);
+    if (!requestParams.success) {
+      return reply.code(400).send(failureEnvelope('请求参数不合法。'));
+    }
+
+    const job = aiJobStore.get(requestParams.data.jobId);
+    if (!job) {
+      return reply.code(404).send(failureEnvelope('任务不存在或已过期。'));
+    }
+
+    return reply.send(successEnvelope(job));
+  });
+
   app.post('/v1/ai/director-plan', async (request, reply) => {
     const requestBody = generateDirectorPlanRequestSchema.safeParse(request.body);
     if (!requestBody.success) {
@@ -61,6 +130,13 @@ export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDire
       (result) => assemblySuggestionSchema.parse(result),
     );
   });
+}
+
+function toStartJobResponse(job: PublicAiJob) {
+  return {
+    jobId: job.jobId,
+    status: job.status,
+  };
 }
 
 async function sendAiResponseWithHeartbeat<T>(
@@ -121,6 +197,10 @@ function sendJson(
 function sendRouteError(reply: FastifyReply, error: unknown) {
   const routeError = getRouteError(error);
   return reply.code(routeError.statusCode).send(routeError.body);
+}
+
+function toJobErrorMessage(error: unknown): string {
+  return getRouteError(error).body.error ?? '服务暂时不可用，请稍后重试。';
 }
 
 function getRouteError(error: unknown) {

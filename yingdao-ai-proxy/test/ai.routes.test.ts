@@ -186,6 +186,193 @@ describe('AI routes', () => {
     });
   });
 
+  it('starts async director plan job and exposes the completed result by job id', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const startResponse = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/jobs/director-plan',
+      payload: { brief: sampleBrief },
+    });
+
+    expect(startResponse.statusCode).toBe(202);
+    expect(startResponse.json()).toMatchObject({
+      success: true,
+      error: null,
+      data: {
+        status: 'Pending',
+      },
+    });
+
+    const { jobId } = startResponse.json().data as { jobId: string };
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const pollResponse = await app.inject({
+      method: 'GET',
+      url: `/v1/ai/jobs/${jobId}`,
+    });
+
+    expect(pollResponse.statusCode).toBe(200);
+    expect(pollResponse.json()).toMatchObject({
+      success: true,
+      error: null,
+      data: {
+        jobId,
+        status: 'Succeeded',
+        error: null,
+        data: {
+          title: 'AI 校园短片方案',
+        },
+      },
+    });
+  });
+
+  it('starts async clip review job and exposes the completed result by job id', async () => {
+    let capturedMediaType = '';
+    app = buildApp({
+      aiDirectorService: createService({
+        async reviewClip(_shotTask, _attemptNumber, mediaType) {
+          capturedMediaType = mediaType ?? '';
+          return sampleClipReview;
+        },
+      }),
+    });
+
+    const startResponse = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/jobs/clip-review',
+      payload: { shotTask: sampleShotTask, attemptNumber: 2, mediaType: 'Photo' },
+    });
+
+    expect(startResponse.statusCode).toBe(202);
+    const { jobId } = startResponse.json().data as { jobId: string };
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const pollResponse = await app.inject({
+      method: 'GET',
+      url: `/v1/ai/jobs/${jobId}`,
+    });
+
+    expect(capturedMediaType).toBe('Photo');
+    expect(pollResponse.statusCode).toBe(200);
+    expect(pollResponse.json()).toMatchObject({
+      success: true,
+      error: null,
+      data: {
+        jobId,
+        status: 'Succeeded',
+        error: null,
+        data: {
+          usable: true,
+          score: 89,
+        },
+      },
+    });
+  });
+
+  it('starts async assembly suggestion job and exposes the completed result by job id', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const startResponse = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/jobs/assembly-suggestion',
+      payload: { project: sampleProject },
+    });
+
+    expect(startResponse.statusCode).toBe(202);
+    const { jobId } = startResponse.json().data as { jobId: string };
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const pollResponse = await app.inject({
+      method: 'GET',
+      url: `/v1/ai/jobs/${jobId}`,
+    });
+
+    expect(pollResponse.statusCode).toBe(200);
+    expect(pollResponse.json()).toMatchObject({
+      success: true,
+      error: null,
+      data: {
+        jobId,
+        status: 'Succeeded',
+        error: null,
+        data: {
+          orderedClipIds: ['clip_1'],
+        },
+      },
+    });
+  });
+
+  it('keeps async AI job failures pollable without holding the submit connection open', async () => {
+    app = buildApp({
+      aiDirectorService: createService({
+        async generateDirectorPlan() {
+          throw new UpstreamAiError('upstream unavailable');
+        },
+      }),
+    });
+
+    const startResponse = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/jobs/director-plan',
+      payload: { brief: sampleBrief },
+    });
+
+    expect(startResponse.statusCode).toBe(202);
+    const { jobId } = startResponse.json().data as { jobId: string };
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const pollResponse = await app.inject({
+      method: 'GET',
+      url: `/v1/ai/jobs/${jobId}`,
+    });
+
+    expect(pollResponse.statusCode).toBe(200);
+    expect(pollResponse.json()).toEqual({
+      success: true,
+      error: null,
+      data: {
+        jobId,
+        status: 'Failed',
+        data: null,
+        error: 'AI 服务暂时不可用，请稍后重试。',
+      },
+    });
+  });
+
+  it('returns 404 envelope for an unknown async AI job id', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/v1/ai/jobs/missing-job',
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: '任务不存在或已过期。',
+    });
+  });
+
+  it('returns 400 envelope for invalid async director job payload', async () => {
+    app = buildApp({ aiDirectorService: createService() });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/jobs/director-plan',
+      payload: { brief: { title: 'only title' } },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      success: false,
+      data: null,
+      error: '请求参数不合法。',
+    });
+  });
+
   it('accepts photo media type in director plan requests', async () => {
     let capturedMediaType = '';
     app = buildApp({
