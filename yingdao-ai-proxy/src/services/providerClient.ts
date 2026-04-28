@@ -141,7 +141,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
       baseBody.max_tokens = maxTokens;
     }
 
-    if (this.config.reasoningEffort !== undefined) {
+    if (this.config.reasoningEffort !== undefined && modelName === this.config.modelName) {
       baseBody.reasoning_effort = this.config.reasoningEffort;
     }
 

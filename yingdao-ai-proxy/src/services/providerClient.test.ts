@@ -207,6 +207,7 @@ describe('OpenAiCompatibleProviderClient', () => {
       attemptTimeoutMs: 45000,
       baseUrl: 'https://integrate.api.nvidia.com',
       useJsonResponseFormat: false,
+      reasoningEffort: 'none',
     });
 
     const result = await client.generateObject({
@@ -224,7 +225,9 @@ describe('OpenAiCompatibleProviderClient', () => {
 
     expect(result).toEqual({ ok: true });
     expect(primaryBody.model).toBe('deepseek-ai/deepseek-v4-pro');
+    expect(primaryBody.reasoning_effort).toBe('none');
     expect(fallbackBody.model).toBe('meta/llama-3.1-8b-instruct');
+    expect(fallbackBody.reasoning_effort).toBeUndefined();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
