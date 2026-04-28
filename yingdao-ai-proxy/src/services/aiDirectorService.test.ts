@@ -160,6 +160,50 @@ describe('DefaultAiDirectorService', () => {
     });
   });
 
+  it('normalizes numeric shot ids from upstream director plans', async () => {
+    const providerClient: ProviderClient = {
+      async generateObject<T>(): Promise<T> {
+        return {
+          title: '我的日常影像记录',
+          storyLogline: '记录今天的生活片段',
+          beatSummary: ['家里', '街边', '咖啡店'],
+          shotTasks: [
+            {
+              id: 1,
+              orderIndex: 1,
+              title: '早晨的起床',
+              goal: '拍出舒适的起床场景',
+              shotType: '静态',
+              durationSuggestSec: 10,
+              compositionHint: '自然光线',
+              actionHint: '自然起床',
+              status: 'Planned',
+              capturedClipIds: [],
+              latestReview: null,
+              beatLabel: '早晨',
+              whyThisShotMatters: '记录起床的舒适感',
+              successChecklist: ['自然光线', '舒适的姿势'],
+              difficultyHint: '低',
+              retakePriority: 'Low',
+            },
+          ],
+        } as T;
+      },
+    };
+
+    const service = new DefaultAiDirectorService(providerClient);
+
+    const result = await service.generateDirectorPlan({ ...sampleBrief, mediaType: 'Photo' });
+
+    expect(result.shotTasks[0]).toMatchObject({
+      id: 'shot_1',
+      capturedClipIds: [],
+      latestReview: null,
+      status: 'Planned',
+      retakePriority: 'Low',
+    });
+  });
+
   it('uses upstream AI for clip review when it returns a valid response', async () => {
     let capturedUserPrompt = '';
     let capturedTimeoutMs = 0;

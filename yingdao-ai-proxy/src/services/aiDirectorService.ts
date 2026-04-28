@@ -229,17 +229,35 @@ export class DefaultAiDirectorService implements AiDirectorService {
       }
 
       const candidate = item as {
+        id?: unknown;
+        capturedClipIds?: unknown;
         latestReview?: unknown;
+        status?: unknown;
+        retakePriority?: unknown;
       };
+      const normalized = { ...candidate };
 
-      if (typeof candidate.latestReview !== 'string') {
-        return candidate;
+      if (typeof candidate.id === 'number') {
+        normalized.id = `shot_${candidate.id}`;
       }
 
-      return {
-        ...candidate,
-        latestReview: null,
-      };
+      if (!Array.isArray(candidate.capturedClipIds)) {
+        normalized.capturedClipIds = [];
+      }
+
+      if (candidate.latestReview === undefined || typeof candidate.latestReview === 'string') {
+        normalized.latestReview = null;
+      }
+
+      if (candidate.status === undefined) {
+        normalized.status = 'Planned';
+      }
+
+      if (candidate.retakePriority === undefined) {
+        normalized.retakePriority = 'Medium';
+      }
+
+      return normalized;
     });
   }
 
