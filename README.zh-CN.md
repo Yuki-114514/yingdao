@@ -82,7 +82,7 @@ PORT=8787
 MODEL_PROVIDER=openai-compatible
 MODEL_BASE_URL=https://integrate.api.nvidia.com
 MODEL_API_KEY=your_nvidia_api_key_here
-MODEL_NAME=deepseek-ai/deepseek-v4-flash
+MODEL_NAME=deepseek-ai/deepseek-v4-pro
 MODEL_JSON_RESPONSE_FORMAT=false
 MODEL_MAX_TOKENS=1200
 MODEL_REASONING_EFFORT=none
@@ -92,9 +92,9 @@ REQUEST_TIMEOUT_MS=240000
 说明：
 
 - NVIDIA NIM 的 `MODEL_BASE_URL` 使用 `https://integrate.api.nvidia.com`。
-- `MODEL_NAME` 使用完整模型 ID：`deepseek-ai/deepseek-v4-flash`。
-- `MODEL_JSON_RESPONSE_FORMAT=false` 用于兼容当前 NVIDIA DeepSeek V4 Flash 接口。
-- `MODEL_REASONING_EFFORT=none` 和 `MODEL_MAX_TOKENS=1200` 用于让 DeepSeek V4 Flash 走低延迟模式。
+- `MODEL_NAME` 使用完整模型 ID：`deepseek-ai/deepseek-v4-pro`。
+- `MODEL_JSON_RESPONSE_FORMAT=false` 用于兼容当前 NVIDIA DeepSeek 接口。
+- `MODEL_REASONING_EFFORT=none` 和 `MODEL_MAX_TOKENS=1200` 用于让 DeepSeek V4 Pro 走较低延迟模式。
 - `MODEL_API_KEY` 是必填项，必须只保留在本地环境中。
 - `REQUEST_TIMEOUT_MS=240000` 让代理等待更慢的 AI 生成，而不是返回本地兜底模板。
 
@@ -157,7 +157,7 @@ Render 会自动配置：
 
 - `HOST=0.0.0.0`，用于接收公网请求
 - `MODEL_BASE_URL=https://integrate.api.nvidia.com`
-- `MODEL_NAME=deepseek-ai/deepseek-v4-flash`
+- `MODEL_NAME=deepseek-ai/deepseek-v4-pro`
 - `MODEL_JSON_RESPONSE_FORMAT=false`
 - `MODEL_MAX_TOKENS=1200`
 - `MODEL_REASONING_EFFORT=none`

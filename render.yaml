@@ -21,7 +21,7 @@ services:
       - key: MODEL_API_KEY
         sync: false
       - key: MODEL_NAME
-        value: deepseek-ai/deepseek-v4-flash
+        value: deepseek-ai/deepseek-v4-pro
       - key: MODEL_JSON_RESPONSE_FORMAT
         value: false
       - key: MODEL_MAX_TOKENS
