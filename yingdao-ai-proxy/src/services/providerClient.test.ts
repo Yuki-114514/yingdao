@@ -43,6 +43,85 @@ describe('OpenAiCompatibleProviderClient', () => {
     expect(result).toEqual({ ok: true, answer: 'hi' });
   });
 
+  it('parses JSON content wrapped in a markdown code fence', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: '```json\n{"ok":true,"answer":"hi"}\n```',
+              },
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      ),
+    );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new OpenAiCompatibleProviderClient({
+      apiKey: 'test-key',
+      modelName: 'gpt-5.4',
+      timeoutMs: 1000,
+      baseUrl: 'http://127.0.0.1:8317',
+    });
+
+    const result = await client.generateObject({
+      systemPrompt: 'return json',
+      userPrompt: 'say hi',
+      schema: z.object({
+        ok: z.boolean(),
+        answer: z.string(),
+      }),
+    });
+
+    expect(result).toEqual({ ok: true, answer: 'hi' });
+  });
+
+  it('parses JSON content wrapped in a bare code fence', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: '```\n{"ok":true}\n```',
+              },
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      ),
+    );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new OpenAiCompatibleProviderClient({
+      apiKey: 'test-key',
+      modelName: 'gpt-5.4',
+      timeoutMs: 1000,
+      baseUrl: 'http://127.0.0.1:8317',
+    });
+
+    const result = await client.generateObject({
+      systemPrompt: 'return json',
+      userPrompt: 'say hi',
+      schema: z.object({
+        ok: z.boolean(),
+      }),
+    });
+
+    expect(result).toEqual({ ok: true });
+  });
+
   it('omits response_format when JSON mode is disabled for providers that do not support it', async () => {
     const fetchMock = vi.fn(async () =>
       new Response(

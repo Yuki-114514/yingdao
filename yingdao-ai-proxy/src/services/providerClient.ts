@@ -104,7 +104,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
         contentChars: text.length,
       });
 
-      return input.schema.parse(JSON.parse(text) as unknown);
+      return input.schema.parse(JSON.parse(stripJsonCodeFence(text)) as unknown);
     } catch (error) {
       console.warn('ai_provider_request_failed', {
         model: modelName,
@@ -166,4 +166,10 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     }
     return `${normalizedBaseUrl}/v1/chat/completions`;
   }
+}
+
+function stripJsonCodeFence(text: string): string {
+  const trimmed = text.trim();
+  const fencedJson = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return fencedJson?.[1]?.trim() ?? trimmed;
 }
