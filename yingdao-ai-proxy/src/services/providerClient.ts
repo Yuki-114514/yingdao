@@ -38,27 +38,55 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     timeoutMs?: number;
     maxTokens?: number;
   }): Promise<T> {
-    const response = await fetch(this.resolveUrl(), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.config.apiKey}`,
-      },
-      body: JSON.stringify(this.buildRequestBody(input)),
-      signal: AbortSignal.timeout(input.timeoutMs ?? this.config.timeoutMs),
-    });
+    const startedAt = Date.now();
+    const url = this.resolveUrl();
+    const requestBody = this.buildRequestBody(input);
 
-    if (!response.ok) {
-      throw new Error(`Upstream returned HTTP ${response.status}`);
+    try {
+      console.info('ai_provider_request_start', {
+        model: this.config.modelName,
+        host: new URL(url).host,
+        maxTokens: requestBody.max_tokens ?? null,
+        jsonResponseFormat: this.config.useJsonResponseFormat !== false,
+      });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.config.apiKey}`,
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(input.timeoutMs ?? this.config.timeoutMs),
+      });
+
+      if (!response.ok) {
+        const bodyPreview = (await response.text()).slice(0, 500);
+        throw new Error(`Upstream returned HTTP ${response.status}: ${bodyPreview}`);
+      }
+
+      const payload = (await response.json()) as OpenAiCompatibleResponse;
+      const text = payload.choices?.[0]?.message?.content?.trim();
+      if (!text) {
+        throw new Error('AI 返回了空内容。');
+      }
+
+      console.info('ai_provider_request_success', {
+        model: this.config.modelName,
+        durationMs: Date.now() - startedAt,
+        contentChars: text.length,
+      });
+
+      return input.schema.parse(JSON.parse(text) as unknown);
+    } catch (error) {
+      console.warn('ai_provider_request_failed', {
+        model: this.config.modelName,
+        durationMs: Date.now() - startedAt,
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+        errorMessage: error instanceof Error ? error.message.slice(0, 500) : 'Unknown upstream error',
+      });
+      throw error;
     }
-
-    const payload = (await response.json()) as OpenAiCompatibleResponse;
-    const text = payload.choices?.[0]?.message?.content?.trim();
-    if (!text) {
-      throw new Error('AI 返回了空内容。');
-    }
-
-    return input.schema.parse(JSON.parse(text) as unknown);
   }
 
   private buildRequestBody(input: {
