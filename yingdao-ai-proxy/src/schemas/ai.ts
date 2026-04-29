@@ -101,6 +101,21 @@ export const shotTaskSchema: z.ZodType<{
   }),
 );
 
+const inboundShotTaskSchema = z.preprocess((value) => {
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return {
+    ...candidate,
+    latestReview: candidate.latestReview ?? null,
+    capturedClipIds: Array.isArray(candidate.capturedClipIds) ? candidate.capturedClipIds : [],
+    status: candidate.status ?? 'Planned',
+    retakePriority: candidate.retakePriority ?? 'Medium',
+  };
+}, shotTaskSchema);
+
 export const directorPlanSchema = z.object({
   title: mediumTextSchema,
   storyLogline: longTextSchema,
@@ -158,18 +173,51 @@ export const projectSchema: z.ZodType<{
   }),
 );
 
+const inboundProjectSchema = z.preprocess((value) => {
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const directorPlan = typeof candidate.directorPlan === 'object' && candidate.directorPlan !== null
+    ? {
+        ...(candidate.directorPlan as Record<string, unknown>),
+        shotTasks: Array.isArray((candidate.directorPlan as Record<string, unknown>).shotTasks)
+          ? ((candidate.directorPlan as Record<string, unknown>).shotTasks as unknown[]).map((shotTask) =>
+              typeof shotTask === 'object' && shotTask !== null
+                ? { latestReview: null, ...(shotTask as Record<string, unknown>) }
+                : shotTask,
+            )
+          : (candidate.directorPlan as Record<string, unknown>).shotTasks,
+      }
+    : candidate.directorPlan;
+
+  return {
+    ...candidate,
+    directorPlan,
+    clips: Array.isArray(candidate.clips)
+      ? candidate.clips.map((clip) =>
+          typeof clip === 'object' && clip !== null
+            ? { review: null, ...(clip as Record<string, unknown>) }
+            : clip,
+        )
+      : candidate.clips,
+    assemblySuggestion: candidate.assemblySuggestion ?? null,
+  };
+}, projectSchema);
+
 export const generateDirectorPlanRequestSchema = z.object({
   brief: creativeBriefSchema,
 });
 
 export const reviewClipRequestSchema = z.object({
-  shotTask: shotTaskSchema,
+  shotTask: inboundShotTaskSchema,
   attemptNumber: z.number().int().min(1).max(10),
   mediaType: mediaTypeSchema.optional(),
 });
 
 export const buildAssemblyRequestSchema = z.object({
-  project: projectSchema,
+  project: inboundProjectSchema,
 });
 
 export type CreativeBrief = z.infer<typeof creativeBriefSchema>;

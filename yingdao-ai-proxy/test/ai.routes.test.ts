@@ -270,6 +270,44 @@ describe('AI routes', () => {
     });
   });
 
+  it('accepts async clip review requests when Android omits null latestReview', async () => {
+    let capturedShotLatestReview: unknown = 'not-seen';
+    app = buildApp({
+      aiDirectorService: createService({
+        async reviewClip(shotTask) {
+          capturedShotLatestReview = shotTask.latestReview;
+          return sampleClipReview;
+        },
+      }),
+    });
+
+    const { latestReview: _latestReview, ...shotTaskWithoutLatestReview } = sampleShotTask;
+    const startResponse = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/jobs/clip-review',
+      payload: { shotTask: shotTaskWithoutLatestReview, attemptNumber: 1, mediaType: 'Photo' },
+    });
+
+    expect(startResponse.statusCode).toBe(202);
+    const { jobId } = startResponse.json().data as { jobId: string };
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const pollResponse = await app.inject({
+      method: 'GET',
+      url: `/v1/ai/jobs/${jobId}`,
+    });
+
+    expect(capturedShotLatestReview).toBeNull();
+    expect(pollResponse.json()).toMatchObject({
+      data: {
+        status: 'Succeeded',
+        data: {
+          score: 89,
+        },
+      },
+    });
+  });
+
   it('starts async assembly suggestion job and exposes the completed result by job id', async () => {
     app = buildApp({ aiDirectorService: createService() });
 
@@ -296,6 +334,58 @@ describe('AI routes', () => {
         jobId,
         status: 'Succeeded',
         error: null,
+        data: {
+          orderedClipIds: ['clip_1'],
+        },
+      },
+    });
+  });
+
+  it('accepts async assembly requests when Android omits nullable fields', async () => {
+    let capturedProjectAssemblySuggestion: unknown = 'not-seen';
+    let capturedClipReview: unknown = 'not-seen';
+    app = buildApp({
+      aiDirectorService: createService({
+        async buildAssembly(project) {
+          capturedProjectAssemblySuggestion = project.assemblySuggestion;
+          capturedClipReview = project.clips[0]?.review;
+          return sampleAssemblySuggestion;
+        },
+      }),
+    });
+
+    const { assemblySuggestion: _assemblySuggestion, ...projectWithoutAssemblySuggestion } = sampleProject;
+    const { review: _review, ...clipWithoutReview } = sampleProject.clips[0];
+    const { latestReview: _shotLatestReview, ...shotWithoutLatestReview } = sampleProject.directorPlan.shotTasks[0];
+    const startResponse = await app.inject({
+      method: 'POST',
+      url: '/v1/ai/jobs/assembly-suggestion',
+      payload: {
+        project: {
+          ...projectWithoutAssemblySuggestion,
+          directorPlan: {
+            ...sampleProject.directorPlan,
+            shotTasks: [shotWithoutLatestReview],
+          },
+          clips: [clipWithoutReview],
+        },
+      },
+    });
+
+    expect(startResponse.statusCode).toBe(202);
+    const { jobId } = startResponse.json().data as { jobId: string };
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const pollResponse = await app.inject({
+      method: 'GET',
+      url: `/v1/ai/jobs/${jobId}`,
+    });
+
+    expect(capturedProjectAssemblySuggestion).toBeNull();
+    expect(capturedClipReview).toBeNull();
+    expect(pollResponse.json()).toMatchObject({
+      data: {
+        status: 'Succeeded',
         data: {
           orderedClipIds: ['clip_1'],
         },
