@@ -310,6 +310,65 @@ describe('OpenAiCompatibleProviderClient', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('uses the configured vision model and image content for image requests', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: '{"ok":true}',
+              },
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      ),
+    );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = new OpenAiCompatibleProviderClient({
+      apiKey: 'test-key',
+      modelName: 'deepseek-ai/deepseek-v4-pro',
+      visionModelName: 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1',
+      fallbackModelNames: ['meta/llama-3.1-8b-instruct'],
+      timeoutMs: 240000,
+      baseUrl: 'https://integrate.api.nvidia.com',
+      useJsonResponseFormat: false,
+      reasoningEffort: 'none',
+    });
+
+    const result = await client.generateObject({
+      systemPrompt: 'return json',
+      userPrompt: 'inspect image',
+      imageDataUrl: 'data:image/jpeg;base64,abc123',
+      schema: z.object({
+        ok: z.boolean(),
+      }),
+    });
+
+    const firstCall = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const requestBody = JSON.parse(firstCall[1].body as string) as {
+      model?: unknown;
+      messages?: Array<{ content?: unknown }>;
+      reasoning_effort?: unknown;
+    };
+    const userContent = requestBody.messages?.[1]?.content as Array<Record<string, unknown>>;
+
+    expect(result).toEqual({ ok: true });
+    expect(requestBody.model).toBe('nvidia/llama-3.1-nemotron-nano-vl-8b-v1');
+    expect(requestBody.reasoning_effort).toBeUndefined();
+    expect(userContent).toEqual([
+      { type: 'text', text: 'inspect image' },
+      { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,abc123' } },
+    ]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('accepts base URLs with or without the OpenAI v1 path', async () => {
     const fetchMock = vi.fn(async () =>
       new Response(

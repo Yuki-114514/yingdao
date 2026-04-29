@@ -229,10 +229,12 @@ describe('AI routes', () => {
 
   it('starts async clip review job and exposes the completed result by job id', async () => {
     let capturedMediaType = '';
+    let capturedMediaBase64 = '';
     app = buildApp({
       aiDirectorService: createService({
-        async reviewClip(_shotTask, _attemptNumber, mediaType) {
+        async reviewClip(_shotTask, _attemptNumber, mediaType, capturedMedia) {
           capturedMediaType = mediaType ?? '';
+          capturedMediaBase64 = capturedMedia?.dataBase64 ?? '';
           return sampleClipReview;
         },
       }),
@@ -241,7 +243,15 @@ describe('AI routes', () => {
     const startResponse = await app.inject({
       method: 'POST',
       url: '/v1/ai/jobs/clip-review',
-      payload: { shotTask: sampleShotTask, attemptNumber: 2, mediaType: 'Photo' },
+      payload: {
+        shotTask: sampleShotTask,
+        attemptNumber: 2,
+        mediaType: 'Photo',
+        capturedMedia: {
+          mimeType: 'image/jpeg',
+          dataBase64: 'abc123',
+        },
+      },
     });
 
     expect(startResponse.statusCode).toBe(202);
@@ -254,6 +264,7 @@ describe('AI routes', () => {
     });
 
     expect(capturedMediaType).toBe('Photo');
+    expect(capturedMediaBase64).toBe('abc123');
     expect(pollResponse.statusCode).toBe(200);
     expect(pollResponse.json()).toMatchObject({
       success: true,

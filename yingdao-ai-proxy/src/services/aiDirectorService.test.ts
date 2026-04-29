@@ -256,6 +256,48 @@ describe('DefaultAiDirectorService', () => {
     expect(capturedMaxTokens).toBe(450);
   });
 
+  it('passes captured photo data to the provider for visual clip review', async () => {
+    let capturedSystemPrompt = '';
+    let capturedImageDataUrl = '';
+
+    const providerClient: ProviderClient = {
+      async generateObject<T>(input: {
+        systemPrompt: string;
+        userPrompt: string;
+        schema: z.ZodSchema<T>;
+        imageDataUrl?: string;
+      }): Promise<T> {
+        capturedSystemPrompt = input.systemPrompt;
+        capturedImageDataUrl = input.imageDataUrl ?? '';
+        return {
+          clipId: '',
+          usable: true,
+          score: 82,
+          issues: ['构图还可以更集中'],
+          suggestion: '把主体放到三分线附近。',
+          stabilityScore: 85,
+          subjectScore: 83,
+          compositionScore: 74,
+          emotionScore: 86,
+          keepReason: '画面主体基本明确。',
+          retakeReason: '',
+          nextAction: '可以保留，也可以补一张更干净的构图。',
+        } as T;
+      },
+    };
+
+    const service = new DefaultAiDirectorService(providerClient);
+
+    const result = await service.reviewClip(sampleShotTask, 1, 'Photo', {
+      mimeType: 'image/jpeg',
+      dataBase64: 'abc123',
+    });
+
+    expect(result.score).toBe(82);
+    expect(capturedSystemPrompt).toContain('真实照片');
+    expect(capturedImageDataUrl).toBe('data:image/jpeg;base64,abc123');
+  });
+
   it('normalizes nullable text fields from upstream clip reviews', async () => {
     const providerClient: ProviderClient = {
       async generateObject<T>(): Promise<T> {

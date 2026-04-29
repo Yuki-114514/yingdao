@@ -22,6 +22,8 @@ services:
         sync: false
       - key: MODEL_NAME
         value: deepseek-ai/deepseek-v4-pro
+      - key: MODEL_VISION_NAME
+        value: nvidia/llama-3.1-nemotron-nano-vl-8b-v1
       - key: MODEL_FALLBACK_NAMES
         value: meta/llama-3.1-8b-instruct
       - key: MODEL_JSON_RESPONSE_FORMAT

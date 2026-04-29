@@ -58,6 +58,7 @@ export interface AiDirectorService {
     shotTask: ShotTask,
     attemptNumber: number,
     mediaType?: ReviewClipRequest['mediaType'],
+    capturedMedia?: ReviewClipRequest['capturedMedia'],
   ): Promise<ClipReview>;
   buildAssembly(project: Project): Promise<AssemblySuggestion>;
 }
@@ -82,19 +83,26 @@ export class DefaultAiDirectorService implements AiDirectorService {
     shotTask: ShotTask,
     attemptNumber: number,
     mediaType?: ReviewClipRequest['mediaType'],
+    capturedMedia?: ReviewClipRequest['capturedMedia'],
   ): Promise<ClipReview> {
     const resolvedMediaType = mediaType ?? 'Video';
+    const canInspectImage = resolvedMediaType === 'Photo' && capturedMedia !== undefined;
     return this.generateStructured({
       schema: clipReviewSchema,
-      systemPrompt:
-        '你是日常影像拍后点评助手。你看不到真实媒体，只能根据 shotTask、attemptNumber、mediaType 给出可执行点评。只返回 JSON 对象，字段只能有：clipId、usable、score、issues、suggestion、stabilityScore、subjectScore、compositionScore、emotionScore、keepReason、retakeReason、nextAction。分数必须是 0 到 100 的整数。Photo 用照片表达，Video 用视频表达。内容要具体、简洁。',
+      systemPrompt: canInspectImage
+        ? '你是日常照片拍后点评助手。你会收到一张真实照片和拍摄任务，请只根据真实画面与任务目标给出点评。不要编造画面里没有的内容。只返回 JSON 对象，字段只能有：clipId、usable、score、issues、suggestion、stabilityScore、subjectScore、compositionScore、emotionScore、keepReason、retakeReason、nextAction。分数必须是 0 到 100 的整数。内容要具体、简洁。'
+        : '你是日常影像拍后点评助手。你看不到真实媒体，只能根据 shotTask、attemptNumber、mediaType 给出保守的拍摄建议。不要声称已经看到、捕捉到、拍到了某个画面内容；不要给出画面事实判断。只返回 JSON 对象，字段只能有：clipId、usable、score、issues、suggestion、stabilityScore、subjectScore、compositionScore、emotionScore、keepReason、retakeReason、nextAction。分数必须是 0 到 100 的整数。Photo 用照片表达，Video 用视频表达。内容要具体、简洁。',
       userPrompt: JSON.stringify({
         task: 'review_clip',
         shotTask,
         attemptNumber,
         mediaType: resolvedMediaType,
+        hasCapturedImage: canInspectImage,
       }),
       maxTokens: CLIP_REVIEW_MAX_TOKENS,
+      imageDataUrl: capturedMedia
+        ? `data:${capturedMedia.mimeType};base64,${capturedMedia.dataBase64}`
+        : undefined,
     });
   }
 
@@ -114,6 +122,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
     userPrompt: string;
     timeoutMs?: number;
     maxTokens?: number;
+    imageDataUrl?: string;
   }): Promise<T> {
     try {
       const output = await this.providerClient.generateObject({
@@ -122,6 +131,7 @@ export class DefaultAiDirectorService implements AiDirectorService {
         schema: z.unknown() as z.ZodSchema<T>,
         timeoutMs: input.timeoutMs,
         maxTokens: input.maxTokens,
+        imageDataUrl: input.imageDataUrl,
       });
       return this.normalizeOutput(input.schema, output);
     } catch (error) {

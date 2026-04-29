@@ -40,6 +40,7 @@ const envSchema = z
     MODEL_BASE_URL: z.string().url().default('http://127.0.0.1:8317'),
     MODEL_API_KEY: z.string().min(1),
     MODEL_NAME: z.string().min(1).default('deepseek-ai/deepseek-v4-pro'),
+    MODEL_VISION_NAME: z.string().min(1).optional(),
     MODEL_FALLBACK_NAMES: stringListEnvSchema.default([]),
     MODEL_JSON_RESPONSE_FORMAT: booleanEnvSchema.default(true),
     MODEL_MAX_TOKENS: z.coerce.number().int().positive().optional(),

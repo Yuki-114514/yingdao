@@ -8,6 +8,10 @@ const optionalMediumTextSchema = z.string().max(240);
 const optionalLongTextSchema = z.string().max(600);
 const clipPathSchema = z.string().min(1).max(500);
 const scoreSchema = z.number().int().min(0).max(100);
+const capturedMediaSchema = z.object({
+  mimeType: z.enum(['image/jpeg', 'image/png']),
+  dataBase64: z.string().min(1).max(1_200_000),
+});
 
 export const projectStatusSchema = z.enum([
   'Draft',
@@ -214,6 +218,7 @@ export const reviewClipRequestSchema = z.object({
   shotTask: inboundShotTaskSchema,
   attemptNumber: z.number().int().min(1).max(10),
   mediaType: mediaTypeSchema.optional(),
+  capturedMedia: capturedMediaSchema.optional(),
 });
 
 export const buildAssemblyRequestSchema = z.object({

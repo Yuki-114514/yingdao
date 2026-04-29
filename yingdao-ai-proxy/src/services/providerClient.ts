@@ -3,6 +3,7 @@ import { z } from 'zod';
 export type ProviderClientConfig = {
   apiKey: string;
   modelName: string;
+  visionModelName?: string;
   fallbackModelNames?: string[];
   timeoutMs: number;
   attemptTimeoutMs?: number;
@@ -19,6 +20,7 @@ export interface ProviderClient {
     schema: z.ZodSchema<T>;
     timeoutMs?: number;
     maxTokens?: number;
+    imageDataUrl?: string;
   }): Promise<T>;
 }
 
@@ -39,8 +41,11 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     schema: z.ZodSchema<T>;
     timeoutMs?: number;
     maxTokens?: number;
+    imageDataUrl?: string;
   }): Promise<T> {
-    const modelNames = [this.config.modelName, ...(this.config.fallbackModelNames ?? [])];
+    const modelNames = input.imageDataUrl
+      ? [this.config.visionModelName ?? this.config.modelName]
+      : [this.config.modelName, ...(this.config.fallbackModelNames ?? [])];
     let lastError: unknown;
 
     for (const modelName of modelNames) {
@@ -61,6 +66,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
       schema: z.ZodSchema<T>;
       timeoutMs?: number;
       maxTokens?: number;
+      imageDataUrl?: string;
     },
     modelName: string,
   ): Promise<T> {
@@ -74,6 +80,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
         model: modelName,
         host: new URL(url).host,
         maxTokens: requestBody.max_tokens ?? null,
+        hasImage: Boolean(input.imageDataUrl),
         jsonResponseFormat: this.config.useJsonResponseFormat !== false,
       });
 
@@ -120,6 +127,7 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
     systemPrompt: string;
     userPrompt: string;
     maxTokens?: number;
+    imageDataUrl?: string;
   }, modelName: string): Record<string, unknown> {
     const baseBody: Record<string, unknown> = {
       model: modelName,
@@ -131,7 +139,12 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
         },
         {
           role: 'user',
-          content: input.userPrompt,
+          content: input.imageDataUrl
+            ? [
+                { type: 'text', text: input.userPrompt },
+                { type: 'image_url', image_url: { url: input.imageDataUrl } },
+              ]
+            : input.userPrompt,
         },
       ],
     };
@@ -141,7 +154,11 @@ export class OpenAiCompatibleProviderClient implements ProviderClient {
       baseBody.max_tokens = maxTokens;
     }
 
-    if (this.config.reasoningEffort !== undefined && modelName === this.config.modelName) {
+    if (
+      this.config.reasoningEffort !== undefined &&
+      modelName === this.config.modelName &&
+      input.imageDataUrl === undefined
+    ) {
       baseBody.reasoning_effort = this.config.reasoningEffort;
     }
 

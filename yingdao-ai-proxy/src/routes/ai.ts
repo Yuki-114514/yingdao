@@ -51,6 +51,7 @@ export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDire
         requestBody.data.shotTask,
         requestBody.data.attemptNumber,
         requestBody.data.mediaType,
+        requestBody.data.capturedMedia,
       ),
       (result) => clipReviewSchema.parse(result),
       toJobErrorMessage,
@@ -113,6 +114,7 @@ export function registerAiRoutes(app: FastifyInstance, aiDirectorService: AiDire
         requestBody.data.shotTask,
         requestBody.data.attemptNumber,
         requestBody.data.mediaType,
+        requestBody.data.capturedMedia,
       ),
       (result) => clipReviewSchema.parse(result),
     );

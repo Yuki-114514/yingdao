@@ -24,7 +24,7 @@ type RateLimitBucket = {
   resetAt: number;
 };
 
-const REQUEST_BODY_LIMIT_BYTES = 128 * 1024;
+const REQUEST_BODY_LIMIT_BYTES = 2 * 1024 * 1024;
 const APP_TOKEN_HEADER = 'x-yingdao-app-token';
 const HEALTH_CHECK_PATH = '/health';
 const DEFAULT_RATE_LIMIT_MAX_REQUESTS = 30;
@@ -89,6 +89,7 @@ function createAiDirectorService(env = readEnv()): AiDirectorService {
   const providerClient = new OpenAiCompatibleProviderClient({
     apiKey: env.MODEL_API_KEY,
     modelName: env.MODEL_NAME,
+    visionModelName: env.MODEL_VISION_NAME,
     fallbackModelNames: env.MODEL_FALLBACK_NAMES,
     timeoutMs: env.REQUEST_TIMEOUT_MS,
     attemptTimeoutMs: env.MODEL_ATTEMPT_TIMEOUT_MS,
