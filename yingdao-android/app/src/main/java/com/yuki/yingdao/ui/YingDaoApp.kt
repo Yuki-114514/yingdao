@@ -3,8 +3,9 @@ package com.yuki.yingdao.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -51,12 +52,14 @@ internal fun projectStatusLabel(status: ProjectStatus): String {
 
 @Composable
 fun YingDaoApp(
-    viewModel: YingDaoViewModel = viewModel {
-        YingDaoViewModel(aiDirectorService = AppContainer.aiDirectorService())
-    },
+    viewModel: YingDaoViewModel? = null,
 ) {
+    val context = LocalContext.current.applicationContext
+    val resolvedViewModel = viewModel ?: composeViewModel {
+        YingDaoViewModel(aiDirectorService = AppContainer.aiDirectorService(context))
+    }
     val navController = rememberNavController()
-    val uiState = viewModel.uiState
+    val uiState = resolvedViewModel.uiState
 
     Scaffold { innerPadding ->
         NavHost(
@@ -68,11 +71,11 @@ fun YingDaoApp(
                     innerPadding = innerPadding,
                     uiState = uiState,
                     onCreateProject = {
-                        viewModel.resetDraft()
+                        resolvedViewModel.resetDraft()
                         navController.navigate(Screen.NewProject.route)
                     },
                     onContinueProject = { projectId ->
-                        viewModel.openProject(projectId)
+                        resolvedViewModel.openProject(projectId)
                         val project = uiState.projects.find { it.id == projectId }
                         navController.navigate(destinationRouteFor(project?.status ?: ProjectStatus.Draft))
                     },
@@ -82,9 +85,9 @@ fun YingDaoApp(
                 NewProjectScreen(
                     innerPadding = innerPadding,
                     uiState = uiState,
-                    onUpdateDraft = viewModel::updateDraft,
+                    onUpdateDraft = resolvedViewModel::updateDraft,
                     onGeneratePlan = {
-                        viewModel.generateDirectorPlan()
+                        resolvedViewModel.generateDirectorPlan()
                         navController.navigate(Screen.Plan.route)
                     },
                     onBack = { navController.popBackStack() },
@@ -94,7 +97,7 @@ fun YingDaoApp(
                 PlanScreen(
                     innerPadding = innerPadding,
                     uiState = uiState,
-                    onSelectShot = viewModel::selectShot,
+                    onSelectShot = resolvedViewModel::selectShot,
                     onBack = { navController.popBackStack() },
                     onStartShooting = { navController.navigate(Screen.Capture.route) },
                 )
@@ -103,11 +106,11 @@ fun YingDaoApp(
                 CaptureScreen(
                     innerPadding = PaddingValues(0.dp),
                     uiState = uiState,
-                    onSelectShot = viewModel::selectShot,
-                    onRecordedClip = viewModel::registerRecordedClipForSelectedShot,
-                    onApprove = viewModel::approveSelectedShot,
-                    onRetake = viewModel::requestRetakeForSelectedShot,
-                    onSkip = viewModel::skipSelectedShot,
+                    onSelectShot = resolvedViewModel::selectShot,
+                    onCapturedAsset = resolvedViewModel::registerCapturedAssetForSelectedShot,
+                    onApprove = resolvedViewModel::approveSelectedShot,
+                    onRetake = resolvedViewModel::requestRetakeForSelectedShot,
+                    onSkip = resolvedViewModel::skipSelectedShot,
                     onOpenReview = { navController.navigate(Screen.Review.route) },
                     onBack = { navController.popBackStack() },
                 )
@@ -118,7 +121,7 @@ fun YingDaoApp(
                     uiState = uiState,
                     onBack = { navController.popBackStack() },
                     onBuildAssembly = {
-                        viewModel.buildAssemblySuggestion()
+                        resolvedViewModel.buildAssemblySuggestion()
                         navController.navigate(Screen.Output.route)
                     },
                 )

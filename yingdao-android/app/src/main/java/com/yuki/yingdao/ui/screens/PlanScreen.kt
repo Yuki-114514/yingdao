@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.yuki.yingdao.data.MediaType
 import com.yuki.yingdao.ui.YingDaoUiState
 import com.yuki.yingdao.ui.components.HighlightCard
 import com.yuki.yingdao.ui.components.SectionTitle
@@ -34,6 +35,7 @@ fun PlanScreen(
 ) {
     val project = uiState.activeProject
     val plan = project?.directorPlan
+    val isPhotoProject = project?.brief?.mediaType == MediaType.Photo
 
     if (uiState.isGeneratingPlan) {
         Column(
@@ -87,7 +89,11 @@ fun PlanScreen(
         item {
             SectionTitle(
                 title = "先看拍摄顺序",
-                subtitle = "先把这条片子的节奏和重点看一眼，拍起来会更顺。",
+                subtitle = if (isPhotoProject) {
+                    "先把这组照片的顺序和重点看一眼，拍起来会更顺。"
+                } else {
+                    "先把这条片子的节奏和重点看一眼，拍起来会更顺。"
+                },
             )
         }
         item {
@@ -106,8 +112,12 @@ fun PlanScreen(
         }
         item {
             SectionTitle(
-                title = "跟着这些镜头拍",
-                subtitle = "建议先按顺序完成，后面再补最关键的镜头。",
+                title = if (isPhotoProject) "跟着这些照片拍" else "跟着这些镜头拍",
+                subtitle = if (isPhotoProject) {
+                    "建议先按顺序完成，后面再补最关键的照片。"
+                } else {
+                    "建议先按顺序完成，后面再补最关键的镜头。"
+                },
             )
         }
         items(plan.shotTasks, key = { it.id }) { shot ->
@@ -135,8 +145,14 @@ fun PlanScreen(
                         text = shot.goal,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Text("镜头类型：${shot.shotType} · 建议时长：${shot.durationSuggestSec}秒")
-                    Text("这一条为什么要拍：${shot.whyThisShotMatters}")
+                    Text(
+                        if (isPhotoProject) {
+                            "照片类型：${shot.shotType}"
+                        } else {
+                            "镜头类型：${shot.shotType} · 建议时长：${shot.durationSuggestSec}秒"
+                        },
+                    )
+                    Text(if (isPhotoProject) "这张为什么要拍：${shot.whyThisShotMatters}" else "这一条为什么要拍：${shot.whyThisShotMatters}")
                     Text("构图：${shot.compositionHint}")
                     Text("动作：${shot.actionHint}")
                     Text("过关标准：${shot.successChecklist.joinToString(" / ")}")

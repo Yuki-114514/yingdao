@@ -12,6 +12,7 @@ import com.yuki.yingdao.data.ClipReview
 import com.yuki.yingdao.data.CreativeBrief
 import com.yuki.yingdao.data.DirectorTemplates
 import com.yuki.yingdao.data.FakeAiDirectorService
+import com.yuki.yingdao.data.MediaType
 import com.yuki.yingdao.data.Project
 import com.yuki.yingdao.data.ProjectStatus
 import com.yuki.yingdao.data.ShotStatus
@@ -68,6 +69,7 @@ class YingDaoViewModel(
         highlightSubject: String? = null,
         soloMode: Boolean? = null,
         timePressure: TimePressure? = null,
+        mediaType: MediaType? = null,
     ) {
         uiState = uiState.copy(
             draft = uiState.draft.copy(
@@ -84,12 +86,24 @@ class YingDaoViewModel(
                 highlightSubject = highlightSubject ?: uiState.draft.highlightSubject,
                 soloMode = soloMode ?: uiState.draft.soloMode,
                 timePressure = timePressure ?: uiState.draft.timePressure,
+                mediaType = mediaType ?: uiState.draft.mediaType,
             ),
         )
     }
 
     fun selectTemplate(templateId: String) {
-        uiState = uiState.copy(selectedTemplateId = templateId)
+        val template = uiState.templates.firstOrNull { it.id == templateId } ?: return
+        uiState = uiState.copy(
+            selectedTemplateId = templateId,
+            draft = uiState.draft.copy(
+                theme = template.defaultTheme,
+                style = template.defaultStyle,
+                locations = template.defaultLocations,
+                highlightSubject = template.defaultHighlightSubject,
+                shootGoal = template.defaultShootGoal,
+                mediaType = template.defaultMediaType,
+            ),
+        )
     }
 
     fun resetDraft() {
@@ -166,15 +180,40 @@ class YingDaoViewModel(
     }
 
     fun simulateCaptureForSelectedShot() {
-        val mockPath = "mock://clip_${clipCounter}.mp4"
-        registerRecordedClipForSelectedShot(
+        val selectedMediaType = uiState.activeProject?.brief?.mediaType ?: uiState.draft.mediaType
+        val mockPath = when (selectedMediaType) {
+            MediaType.Photo -> "mock://photo_${clipCounter}.jpg"
+            MediaType.Video -> "mock://clip_${clipCounter}.mp4"
+        }
+        registerCapturedAssetForSelectedShot(
             localPath = mockPath,
-            durationSec = (uiState.selectedShot?.durationSuggestSec ?: 3).toDouble(),
+            mediaType = selectedMediaType,
+            durationSec = if (selectedMediaType == MediaType.Photo) 0.0 else (uiState.selectedShot?.durationSuggestSec ?: 3).toDouble(),
         )
     }
 
     fun registerRecordedClipForSelectedShot(
         localPath: String,
+        durationSec: Double,
+    ) {
+        registerCapturedAssetForSelectedShot(
+            localPath = localPath,
+            mediaType = MediaType.Video,
+            durationSec = durationSec,
+        )
+    }
+
+    fun registerCapturedPhotoForSelectedShot(localPath: String) {
+        registerCapturedAssetForSelectedShot(
+            localPath = localPath,
+            mediaType = MediaType.Photo,
+            durationSec = 0.0,
+        )
+    }
+
+    fun registerCapturedAssetForSelectedShot(
+        localPath: String,
+        mediaType: MediaType,
         durationSec: Double,
     ) {
         val project = uiState.activeProject ?: return
@@ -187,6 +226,7 @@ class YingDaoViewModel(
             localPath = localPath,
             durationSec = durationSec,
             thumbnailLabel = shot.title,
+            mediaType = mediaType,
         )
 
         uiState = uiState.copy(
@@ -195,7 +235,7 @@ class YingDaoViewModel(
         )
         viewModelScope.launch {
             try {
-                aiDirectorService.reviewClip(shot, attempt)
+                aiDirectorService.reviewClip(shot, attempt, mediaType, localPath)
                     .map { review -> review.copy(clipId = clipId) }
                     .onSuccess { review ->
                         applyClipReview(projectId = project.id, shotId = shot.id, clip = clip, review = review)
@@ -259,6 +299,7 @@ class YingDaoViewModel(
                 directorPlan = active.directorPlan?.copy(shotTasks = updatedShots),
             )
         }
+        uiState = uiState.copy(reviewError = null)
     }
 
     fun skipSelectedShot() {
@@ -275,6 +316,7 @@ class YingDaoViewModel(
                 directorPlan = active.directorPlan?.copy(shotTasks = updatedShots),
             )
         }
+        uiState = uiState.copy(reviewError = null)
         moveToNextUnresolvedShot()
     }
 

@@ -1,15 +1,20 @@
 package com.yuki.yingdao.data
 
+import android.content.Context
 import com.yuki.yingdao.BuildConfig
 
 object AppContainer {
-    fun aiDirectorService(): AiDirectorService {
+    fun aiDirectorService(context: Context? = null): AiDirectorService {
         val baseUrl = BuildConfig.AI_BASE_URL.trim()
         val appToken = BuildConfig.AI_APP_TOKEN.trim()
         return if (baseUrl.isBlank() || baseUrl == "https://example.invalid/") {
             MisconfiguredAiDirectorService()
         } else {
-            RemoteAiDirectorService(baseUrl = baseUrl, appToken = appToken)
+            RemoteAiDirectorService(
+                baseUrl = baseUrl,
+                appToken = appToken,
+                capturedMediaReader = context?.contentResolver?.let(::CapturedMediaReader),
+            )
         }
     }
 }
@@ -19,7 +24,12 @@ private class MisconfiguredAiDirectorService : AiDirectorService {
         return Result.failure(IllegalStateException("AI 服务地址还没配置好。"))
     }
 
-    override suspend fun reviewClip(shotTask: ShotTask, attemptNumber: Int): Result<ClipReview> {
+    override suspend fun reviewClip(
+        shotTask: ShotTask,
+        attemptNumber: Int,
+        mediaType: MediaType,
+        localPath: String?,
+    ): Result<ClipReview> {
         return Result.failure(IllegalStateException("AI 服务地址还没配置好。"))
     }
 

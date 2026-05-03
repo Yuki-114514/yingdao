@@ -5,6 +5,8 @@ import com.yuki.yingdao.data.AssemblySuggestion
 import com.yuki.yingdao.data.ClipReview
 import com.yuki.yingdao.data.CreativeBrief
 import com.yuki.yingdao.data.DirectorPlan
+import com.yuki.yingdao.data.DirectorTemplates
+import com.yuki.yingdao.data.MediaType
 import com.yuki.yingdao.data.Project
 import com.yuki.yingdao.data.ProjectStatus
 import com.yuki.yingdao.data.RetakePriority
@@ -31,19 +33,38 @@ class YingDaoViewModelTest {
         val viewModel = YingDaoViewModel()
 
         viewModel.updateDraft(
-            shootGoal = "拍出一条可以直接发朋友圈的校园短片",
+            shootGoal = "拍出一组可以直接发朋友圈的日常照片",
             mood = "松弛",
             highlightSubject = "放学后的自己",
             soloMode = true,
             timePressure = com.yuki.yingdao.data.TimePressure.High,
+            mediaType = MediaType.Photo,
         )
 
         val draft = viewModel.uiState.draft
-        assertEquals("拍出一条可以直接发朋友圈的校园短片", draft.shootGoal)
+        assertEquals("拍出一组可以直接发朋友圈的日常照片", draft.shootGoal)
         assertEquals("松弛", draft.mood)
         assertEquals("放学后的自己", draft.highlightSubject)
         assertTrue(draft.soloMode)
         assertEquals(com.yuki.yingdao.data.TimePressure.High, draft.timePressure)
+        assertEquals(MediaType.Photo, draft.mediaType)
+    }
+
+    @Test
+    fun selectTemplateAppliesDefaultBriefForBroaderDailyThemes() {
+        val viewModel = YingDaoViewModel()
+        val foodTemplate = DirectorTemplates.presets.first { it.id == "food_memory" }
+
+        viewModel.selectTemplate(foodTemplate.id)
+
+        val draft = viewModel.uiState.draft
+        assertEquals(foodTemplate.id, viewModel.uiState.selectedTemplateId)
+        assertEquals(foodTemplate.defaultTheme, draft.theme)
+        assertEquals(foodTemplate.defaultStyle, draft.style)
+        assertEquals(foodTemplate.defaultLocations, draft.locations)
+        assertEquals(foodTemplate.defaultHighlightSubject, draft.highlightSubject)
+        assertEquals(foodTemplate.defaultShootGoal, draft.shootGoal)
+        assertEquals(MediaType.Photo, draft.mediaType)
     }
 
     @Test
@@ -84,6 +105,7 @@ class YingDaoViewModelTest {
         advanceUntilIdle()
 
         val activeProject = viewModel.uiState.activeProject
+        val clip = activeProject?.clips?.firstOrNull()
         val updatedShot = activeProject
             ?.directorPlan
             ?.shotTasks
@@ -93,15 +115,61 @@ class YingDaoViewModelTest {
         assertEquals(1, activeProject?.clips?.size)
         assertEquals(
             "content://media/external/video/media/1",
-            activeProject?.clips?.firstOrNull()?.localPath,
+            clip?.localPath,
         )
-        assertEquals(4.2, activeProject?.clips?.firstOrNull()?.durationSec ?: 0.0, 0.01)
+        assertEquals(MediaType.Video, clip?.mediaType)
+        assertEquals(4.2, clip?.durationSec ?: 0.0, 0.01)
         assertNotNull(updatedShot?.latestReview)
         assertTrue(updatedShot?.capturedClipIds?.isNotEmpty() == true)
         assertTrue(
             updatedShot?.status == ShotStatus.Captured ||
                 updatedShot?.status == ShotStatus.RetakeSuggested,
         )
+    }
+
+    @Test
+    fun registerCapturedPhotoForSelectedShotStoresPhotoMetadata() = runTest {
+        val viewModel = YingDaoViewModel()
+        viewModel.generateDirectorPlan()
+        advanceUntilIdle()
+
+        val selectedShotId = viewModel.uiState.selectedShot?.id
+
+        viewModel.registerCapturedPhotoForSelectedShot(
+            localPath = "content://media/external/images/media/1",
+        )
+        advanceUntilIdle()
+
+        val activeProject = viewModel.uiState.activeProject
+        val clip = activeProject?.clips?.firstOrNull()
+        val updatedShot = activeProject
+            ?.directorPlan
+            ?.shotTasks
+            ?.firstOrNull { it.id == selectedShotId }
+
+        assertNotNull(activeProject)
+        assertEquals(1, activeProject?.clips?.size)
+        assertEquals("content://media/external/images/media/1", clip?.localPath)
+        assertEquals(MediaType.Photo, clip?.mediaType)
+        assertEquals(0.0, clip?.durationSec ?: -1.0, 0.01)
+        assertNotNull(updatedShot?.latestReview)
+        assertTrue(updatedShot?.capturedClipIds?.isNotEmpty() == true)
+    }
+
+    @Test
+    fun registerCapturedPhotoForSelectedShotPassesLocalPhotoPathToReviewService() = runTest {
+        val service = FakeAsyncAiDirectorService()
+        val viewModel = YingDaoViewModel(aiDirectorService = service)
+        viewModel.generateDirectorPlan()
+        advanceUntilIdle()
+
+        viewModel.registerCapturedPhotoForSelectedShot(
+            localPath = "content://media/external/images/media/9",
+        )
+        advanceUntilIdle()
+
+        assertEquals(MediaType.Photo, service.lastReviewMediaType)
+        assertEquals("content://media/external/images/media/9", service.lastReviewLocalPath)
     }
 
     @Test
@@ -395,9 +463,24 @@ class YingDaoViewModelTest {
     ) : AiDirectorService {
         override suspend fun generateDirectorPlan(brief: CreativeBrief): Result<DirectorPlan> = generatePlanResult
 
-        override suspend fun reviewClip(shotTask: ShotTask, attemptNumber: Int): Result<ClipReview> = reviewResult
+        override suspend fun reviewClip(
+            shotTask: ShotTask,
+            attemptNumber: Int,
+            mediaType: MediaType,
+            localPath: String?,
+        ): Result<ClipReview> {
+            lastReviewMediaType = mediaType
+            lastReviewLocalPath = localPath
+            return reviewResult
+        }
 
         override suspend fun buildAssembly(project: Project): Result<AssemblySuggestion> = buildAssemblyResult
+
+        var lastReviewMediaType: MediaType? = null
+            private set
+
+        var lastReviewLocalPath: String? = null
+            private set
     }
 
     private companion object {

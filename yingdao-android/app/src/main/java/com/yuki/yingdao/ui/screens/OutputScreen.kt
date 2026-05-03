@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.yuki.yingdao.data.MediaType
 import com.yuki.yingdao.ui.YingDaoUiState
 import com.yuki.yingdao.ui.components.HighlightCard
 import com.yuki.yingdao.ui.components.SectionTitle
@@ -30,6 +31,7 @@ fun OutputScreen(
 ) {
     val project = uiState.activeProject
     val suggestion = project?.assemblySuggestion
+    val isPhotoProject = project?.brief?.mediaType == MediaType.Photo
 
     if (uiState.isBuildingAssembly) {
         Column(
@@ -40,12 +42,20 @@ fun OutputScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SectionTitle(
-                title = "正在整理成片思路",
-                subtitle = "我在根据你已经通过的镜头，给你排顺序、标题和文案。",
+                title = if (isPhotoProject) "正在整理这组照片" else "正在整理成片思路",
+                subtitle = if (isPhotoProject) {
+                    "我在根据你已经通过的照片，给你排顺序、标题和文案。"
+                } else {
+                    "我在根据你已经通过的镜头，给你排顺序、标题和文案。"
+                },
             )
             HighlightCard(
                 title = "稍等一下",
-                body = "这一步会把现有素材和缺失镜头一起考虑进去。",
+                body = if (isPhotoProject) {
+                    "这一步会把现有照片和缺失画面一起考虑进去。"
+                } else {
+                    "这一步会把现有素材和缺失镜头一起考虑进去。"
+                },
             )
             TextButton(onClick = onBack) {
                 Text("返回")
@@ -87,23 +97,34 @@ fun OutputScreen(
     ) {
         item {
             SectionTitle(
-                title = "把片子顺一顺",
-                subtitle = "先把顺序、标题和字幕想清楚，这条片就更像样了。",
+                title = if (isPhotoProject) "把这组照片顺一顺" else "把片子顺一顺",
+                subtitle = if (isPhotoProject) {
+                    "先把挑图顺序、标题和配文想清楚，这组照片就更完整了。"
+                } else {
+                    "先把顺序、标题和字幕想清楚，这条片就更像样了。"
+                },
             )
         }
         item {
             HighlightCard(
-                title = "推荐成片结构",
+                title = if (isPhotoProject) "推荐组图结构" else "推荐成片结构",
                 body = suggestion.editingDirection,
             )
         }
         item {
-            Text("推荐镜头顺序", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (isPhotoProject) "推荐照片顺序" else "推荐镜头顺序",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
         items(suggestion.orderedClipIds, key = { it }) { clipId ->
             Card {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("推荐放进成片的一条素材", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        if (isPhotoProject) "推荐放进组图的一张照片" else "推荐放进成片的一条素材",
+                        fontWeight = FontWeight.SemiBold,
+                    )
                     suggestion.selectionReasonByClipId[clipId]?.let { reason ->
                         Text(reason, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -121,7 +142,11 @@ fun OutputScreen(
             }
         }
         item {
-            Text("字幕 / 旁白草稿", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (isPhotoProject) "配文草稿" else "字幕 / 旁白草稿",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
         items(suggestion.captionDraft, key = { it }) { line ->
             Card {
@@ -133,8 +158,12 @@ fun OutputScreen(
         item {
             if (suggestion.missingShotIds.isNotEmpty()) {
                 HighlightCard(
-                    title = "仍可补强的镜头",
-                    body = "如果你还想再补一轮，建议先补这些缺口：${suggestion.missingBeatLabels.joinToString(" / ")}。把它们补上，整条片会更完整。",
+                    title = if (isPhotoProject) "仍可补拍的照片" else "仍可补强的镜头",
+                    body = if (isPhotoProject) {
+                        "如果你还想再补一轮，建议先补这些缺口：${suggestion.missingBeatLabels.joinToString(" / ")}。把它们补上，这组照片会更完整。"
+                    } else {
+                        "如果你还想再补一轮，建议先补这些缺口：${suggestion.missingBeatLabels.joinToString(" / ")}。把它们补上，整条片会更完整。"
+                    },
                 )
             }
         }

@@ -54,6 +54,27 @@ final class CameraWorkflowModelTests: XCTestCase {
         XCTAssertEqual(workflow.captures.first?.id, older.id)
     }
 
+    func testDefaultGuidesIncludeBroaderDailyPhotoThemes() throws {
+        let expectedIDs = [
+            "food-detail",
+            "city-walk",
+            "pet-moment",
+            "outfit-selfie",
+            "home-corner",
+            "travel-memory",
+        ]
+        let guideIDs = Set(GuidePreset.defaults.map(\.id))
+
+        XCTAssertTrue(expectedIDs.allSatisfy { guideIDs.contains($0) })
+
+        let workflow = CameraWorkflowModel()
+        workflow.selectGuide(id: "food-detail")
+        let selectedGuide = try XCTUnwrap(GuidePreset.defaults.first { $0.id == "food-detail" })
+
+        XCTAssertEqual(workflow.selectedGuideID, "food-detail")
+        XCTAssertEqual(workflow.selectedGuide.title, selectedGuide.title)
+    }
+
     func testSelectGuideIgnoresUnknownIdentifier() {
         let workflow = CameraWorkflowModel()
         let originalGuideID = workflow.selectedGuideID

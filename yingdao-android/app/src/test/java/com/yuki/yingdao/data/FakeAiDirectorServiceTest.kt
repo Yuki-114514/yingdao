@@ -36,6 +36,29 @@ class FakeAiDirectorServiceTest {
     }
 
     @Test
+    fun generateDirectorPlanForPhotoFoodThemeUsesPhotoLanguage() = runTest {
+        val brief = CreativeBrief(
+            theme = "美食探店",
+            style = "干净明亮",
+            locations = listOf("餐桌", "咖啡店"),
+            shootGoal = "拍出一组有食欲的日常照片",
+            mood = "明亮",
+            highlightSubject = "食物细节和用餐氛围",
+            mediaType = MediaType.Photo,
+        )
+
+        val plan = service.generateDirectorPlan(brief).getOrThrow()
+        val taskText = plan.shotTasks.joinToString(" ") { task ->
+            listOf(task.title, task.goal, task.actionHint, task.successChecklist.joinToString(" ")).joinToString(" ")
+        }
+
+        assertTrue(plan.storyLogline.contains("美食") || plan.storyLogline.contains("食物"))
+        assertTrue(taskText.contains("照片") || taskText.contains("拍一张"))
+        assertFalse(taskText.contains("录制"))
+        assertFalse(taskText.contains("最后两秒"))
+    }
+
+    @Test
     fun generateDirectorPlanVariesByBriefIntent() = runTest {
         val diaryBrief = CreativeBrief(
             theme = "安静自习日常",
@@ -44,6 +67,7 @@ class FakeAiDirectorServiceTest {
             highlightSubject = "学习状态",
             soloMode = true,
             timePressure = TimePressure.Medium,
+            mediaType = MediaType.Video,
         )
         val energeticBrief = CreativeBrief(
             theme = "社团活动记录",
@@ -53,6 +77,7 @@ class FakeAiDirectorServiceTest {
             soloMode = false,
             timePressure = TimePressure.Low,
             castCount = 3,
+            mediaType = MediaType.Video,
         )
 
         val diaryPlan = service.generateDirectorPlan(diaryBrief).getOrThrow()
@@ -80,7 +105,7 @@ class FakeAiDirectorServiceTest {
             retakePriority = RetakePriority.High,
         )
 
-        val review = service.reviewClip(shot, attemptNumber = 1).getOrThrow()
+        val review = service.reviewClip(shot, attemptNumber = 1, mediaType = MediaType.Video).getOrThrow()
 
         assertTrue(review.stabilityScore > 0)
         assertTrue(review.subjectScore > 0)
@@ -122,7 +147,7 @@ class FakeAiDirectorServiceTest {
                     localPath = "content://clip_1",
                     durationSec = 3.5,
                     thumbnailLabel = approvedOpening.title,
-                    review = service.reviewClip(approvedOpening, 1).getOrThrow(),
+                    review = service.reviewClip(approvedOpening, 1, brief.mediaType).getOrThrow(),
                 ),
             ),
         )

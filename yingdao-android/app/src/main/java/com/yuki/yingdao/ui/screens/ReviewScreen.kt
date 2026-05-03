@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.yuki.yingdao.data.MediaType
 import com.yuki.yingdao.ui.YingDaoUiState
 import com.yuki.yingdao.ui.components.HighlightCard
 import com.yuki.yingdao.ui.components.SectionTitle
@@ -35,6 +36,7 @@ fun ReviewScreen(
     val usableCount = project.clips.count { it.review?.usable == true }
     val approvedClipCount = plan.shotTasks.count { it.status == com.yuki.yingdao.data.ShotStatus.Approved }
     val missingShots = plan.shotTasks.filter { it.status != com.yuki.yingdao.data.ShotStatus.Approved && it.status != com.yuki.yingdao.data.ShotStatus.Skipped }
+    val isPhotoProject = project.brief.mediaType == MediaType.Photo
 
     LazyColumn(
         modifier = Modifier
@@ -46,13 +48,21 @@ fun ReviewScreen(
         item {
             SectionTitle(
                 title = "挑一挑哪些能留",
-                subtitle = "先看哪些素材已经够用，哪些镜头还差一点。",
+                subtitle = if (isPhotoProject) {
+                    "先看哪些照片已经够用，哪些照片还差一点。"
+                } else {
+                    "先看哪些素材已经够用，哪些镜头还差一点。"
+                },
             )
         }
         item {
             HighlightCard(
                 title = "当前整理结果",
-                body = "已拍 ${project.clips.size} 条素材，其中 ${usableCount} 条可直接进入候选片段。${if (missingShots.isEmpty()) "所有关键镜头都已覆盖。" else "仍有 ${missingShots.size} 条镜头建议补拍。"}",
+                body = if (isPhotoProject) {
+                    "已拍 ${project.clips.size} 张照片，其中 ${usableCount} 张可直接进入候选。${if (missingShots.isEmpty()) "所有关键照片都已覆盖。" else "仍有 ${missingShots.size} 张照片建议补拍。"}"
+                } else {
+                    "已拍 ${project.clips.size} 条素材，其中 ${usableCount} 条可直接进入候选片段。${if (missingShots.isEmpty()) "所有关键镜头都已覆盖。" else "仍有 ${missingShots.size} 条镜头建议补拍。"}"
+                },
             )
         }
         if (missingShots.isNotEmpty()) {
@@ -65,7 +75,7 @@ fun ReviewScreen(
         }
         if (missingShots.isNotEmpty()) {
             item {
-                SectionTitle(title = "建议补拍镜头")
+                SectionTitle(title = if (isPhotoProject) "建议补拍照片" else "建议补拍镜头")
             }
             items(missingShots, key = { it.id }) { shot ->
                 Card {
@@ -88,7 +98,11 @@ fun ReviewScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(clip.thumbnailLabel, fontWeight = FontWeight.SemiBold)
-                    Text("时长：${clip.durationSec}秒")
+                    if (clip.mediaType == MediaType.Photo) {
+                        Text("类型：照片")
+                    } else {
+                        Text("时长：${clip.durationSec}秒")
+                    }
                     clip.review?.let { review ->
                         Text("评分：${review.score}")
                         Text(review.suggestion, color = MaterialTheme.colorScheme.onSurfaceVariant)

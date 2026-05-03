@@ -30,27 +30,39 @@ enum class RetakePriority {
     High,
 }
 
+enum class MediaType {
+    Photo,
+    Video,
+}
+
 data class TemplatePreset(
     val id: String,
     val title: String,
     val subtitle: String,
     val description: String,
+    val defaultTheme: String,
+    val defaultStyle: String,
+    val defaultLocations: List<String>,
+    val defaultHighlightSubject: String,
+    val defaultShootGoal: String,
+    val defaultMediaType: MediaType,
 )
 
 data class CreativeBrief(
-    val title: String = "我的校园生活记录",
-    val theme: String = "校园散步的一天",
-    val style: String = "清新温暖",
+    val title: String = "我的日常影像记录",
+    val theme: String = "今天的生活片段",
+    val style: String = "生活感",
     val durationSec: Int = 60,
     val castCount: Int = 1,
-    val locations: List<String> = listOf("操场", "图书馆", "食堂"),
+    val locations: List<String> = listOf("家里", "街边", "咖啡店"),
     val needCaption: Boolean = true,
     val needVoiceover: Boolean = false,
-    val shootGoal: String = "拍出一条今天就能分享的校园短片",
+    val shootGoal: String = "拍出一组今天就能分享的日常照片",
     val mood: String = "温和",
-    val highlightSubject: String = "我的校园状态",
+    val highlightSubject: String = "今天最想留下的瞬间",
     val soloMode: Boolean = false,
     val timePressure: TimePressure = TimePressure.Medium,
+    val mediaType: MediaType = MediaType.Photo,
 )
 
 data class DirectorPlan(
@@ -100,6 +112,7 @@ data class ClipAsset(
     val localPath: String,
     val durationSec: Double,
     val thumbnailLabel: String,
+    val mediaType: MediaType = MediaType.Video,
     val review: ClipReview? = null,
 )
 

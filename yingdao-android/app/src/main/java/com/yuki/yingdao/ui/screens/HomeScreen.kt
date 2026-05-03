@@ -13,7 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.VideoCameraBack
+import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,7 +49,7 @@ fun HomeScreen(
         item {
             SectionTitle(
                 title = "影导",
-                subtitle = "不会拍也没关系，跟着一步步拍出好看的校园短片。",
+                subtitle = "不会拍也没关系，跟着一步步拍出好看的日常照片和短片。",
             )
         }
         item {
@@ -76,12 +76,12 @@ fun HomeScreen(
                     ) {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Icon(
-                                imageVector = Icons.Rounded.VideoCameraBack,
+                                imageVector = Icons.Rounded.PhotoCamera,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                             Text(
-                                text = "你的校园短片拍摄搭子",
+                                text = "你的日常影像拍摄搭子",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -92,7 +92,7 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Button(onClick = onCreateProject) {
-                            Text("开始拍一条校园短片")
+                            Text("开始记录今天")
                         }
                     }
                 }
@@ -101,7 +101,7 @@ fun HomeScreen(
         item {
             HighlightCard(
                 title = "你可以这样开始",
-                body = "先告诉我你想拍什么，我会帮你排好镜头顺序。拍摄时照着提示完成，每拍完一条就能马上知道能不能留。",
+                body = "先告诉我你想记录什么，我会帮你排好照片或视频的拍摄顺序。拍摄时照着提示完成，每拍完一张或一条就能马上知道能不能留。",
             )
         }
         item {
@@ -111,11 +111,11 @@ fun HomeScreen(
             item {
                 HighlightCard(
                     title = "还没有开拍的项目",
-                    body = "现在新建一条校园短片，让影导先帮你排好镜头顺序，再陪你一步步拍完。",
+                    body = "现在新建一次日常记录，让影导先帮你排好拍摄顺序，再陪你一步步拍完。",
                 )
             }
         } else {
-            items(uiState.projects) { project ->
+            items(uiState.projects, key = { it.id }) { project ->
                 Card(onClick = { onContinueProject(project.id) }) {
                     Column(
                         modifier = Modifier.padding(18.dp),
